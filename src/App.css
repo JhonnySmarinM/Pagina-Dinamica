@@ -1,0 +1,405 @@
+/* Variables globales */
+:root {
+  --font-family:   sans-serif;
+  --font-size-base: 16px;
+  --color-primary: #ff9800;
+  --color-secondary: #ff4081;
+  --color-generatorform: #ff4081;
+  --color-danger: #e94e77;
+  --color-dark-bg: #1e1e1e;
+  --color-light-text: #000000;
+  --color-dark-bg: #f9fafb;
+  --color-dark-text: #2d3748;
+  --transition-fast: 0.3s ease-in-out;
+  --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  --box-shadow-focus: 0 0 12px rgba(72, 187, 255, 0.7);
+  --border-radius: 12px;
+}
+
+/* General */
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  background: var(--color-light-bg);
+  color: var(--color-light-text);
+  margin: 0;
+  padding: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  width: 100%;
+  height: 100%;
+}
+
+h1, h2, h3, h4, p {
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 15px;
+}
+
+h3, h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 1rem;
+  line-height: 1.75rem;
+  color: var(--color-light-text);
+  margin-bottom: 20px;
+  text-align: justify;
+}
+
+/* Modo oscuro */
+body.dark-mode {
+  background: var(--color-dark-bg);
+  color: var(--color-dark-text);
+}
+
+body.dark-mode h1, 
+body.dark-mode h2, 
+body.dark-mode h3, 
+body.dark-mode h4 {
+  color: var(--color-generatorform);
+}
+
+/* Inputs y Textareas */
+input, textarea {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-light-text);
+  transition: var(--transition-fast);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--box-shadow-focus);
+}
+
+body.dark-mode input, body.dark-mode textarea {
+  background: rgba(40, 40, 40, 0.9);
+  color: var(--color-dark-text);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Botones */
+button {
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  background: linear-gradient(45deg, #ff9800, #ff4081);
+  box-shadow: var(--box-shadow);
+  transition: transform 0.2s ease, box-shadow var(--transition-fast);
+  display: inline-block;
+}
+
+
+button:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+button.salir {
+  background: var(--color-danger);
+}
+
+body.dark-mode button {
+  background: linear-gradient(135deg, #d7426e, #e94e77);
+}
+
+button a {
+  color: #ffffff;
+}
+
+/* Contenedor de los botones */
+.button-container {
+  display: flex;
+  flex-wrap: wrap; /* Asegura que los botones se ajusten si no caben */
+  gap: 40px; /* Incrementa el espacio entre botones */
+  justify-content: center;
+  margin-bottom: 100px;
+}
+
+/* Botones */
+button {
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  background: linear-gradient(45deg, #ff9800, #ff4081);
+  box-shadow: var(--box-shadow);
+  transition: transform 0.2s ease, box-shadow var(--transition-fast);
+}
+
+/* Espaciado extra, si es necesario */
+.button-container button {
+  margin: 5px; /* Añade márgenes horizontales opcionales */
+}
+
+/* Imágenes */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--border-radius);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  
+}
+
+img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Redes Sociales, Carrusel Central y Servicios */
+.redes-sociales,
+.carrusel-central,
+.servicios {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  margin: 40px 0;
+}
+
+.redes-sociales h2,
+.carrusel-central h2,
+.servicios h2 {
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.redes-sociales p,
+.carrusel-central p,
+.servicios p {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  color: var(--color-light-text);
+  text-align: center;
+}
+
+/* Estilo acordeones */
+.accordion-toggle {
+  background-color: var(--color-light-bg);
+  border: none;
+  padding: 15px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: all var(--transition-fast);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.accordion-toggle:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.accordion-content {
+  display: none;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  margin-top: 5px;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.accordion-content.show {
+  display: block;
+}
+
+/* Estilo exclusivo del toggle-switch */
+.toggle-switch {
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  position: relative;
+}
+.hedercontainer{
+  margin: 5rem 0 ;
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+  @media (max-width: 768px) {
+    margin: 0 1rem 0 ;
+    padding: 0 0 1rem 0 ;
+  }
+
+}
+
+.toggle-switch input {
+  display: none;
+}
+.generatecontainer{
+  padding: 1%;
+  margin: 1%;
+  margin-bottom: 20px;
+  @media (max-width: 768px) {
+    padding: 13px;
+    margin: 1%;
+  }
+}
+.switchcontainer{
+  display: flex;
+    justify-content: space-between;
+}
+
+.toggle-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 30px;
+  transition: 0.4s;
+}
+
+.toggle-switch .slider:before {
+  position: absolute;
+  content: "OFF";
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  height: 22px;
+  width: 22px;
+  line-height: 22px;
+  text-align: center;
+  left: 5px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .slider {
+  background-color: var(--color-primary);
+}
+
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(30px);
+  content: "ON";
+  background-color: white;
+  color: var(--color-primary);
+}
+
+
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0; /* Fondo mientras carga */
+}
+
+.spinner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 50px;
+}
+
+.spinner div {
+  width: 8px;
+  height: 20px;
+  margin: 0 2px;
+  background: #3498db;
+  animation: grow 1s infinite ease-in-out;
+}
+
+.spinner div:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.spinner div:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes grow {
+  0%, 100% {
+    transform: scaleY(0.5);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(1.2);
+    opacity: 1;
+  }
+}
+
+.accionButton {
+  background-color: #3498db;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+  text-decoration: none;
+}
+
+.accionButton a  {
+  text-decoration: none;
+  color: #fff;
+}
+
+.footer-text {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--color-light-text);
+}
+
+.services-text {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--color-light-text);
+}
+
+.inputcontainer{
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  color: var(--color-dark-text);
+}
