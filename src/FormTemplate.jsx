@@ -3,30 +3,27 @@ import { useNavigate } from "react-router-dom";
 
 import "./App.css";
 
-function FormTemplate({data = null}) {
-    const navigate = useNavigate();
+function FormTemplate({ data = null }) {
+  const navigate = useNavigate();
 
-    const [token, setToken] = useState(localStorage.getItem("token"));
+  const handleGeneratePage = () => {
+    navigate("/webtemplateCreate", { state: formData }); // Envía los datos a la página de vista previa
+  };
 
-    const handleGeneratePage = () => {
-      if (token) {
-      navigate("/webtemplateCreate", { state: formData }); // Envía los datos a la página de vista previa
-      } else {
-        navigate("/auth"); // Redirige al usuario al inicio de sesión si no hay
-      }
-    };
   const url = window.location.href;
   const id = url.split("/")[3]; // Assuming the ID is the first parameter after the domain
 
   const selectedData = data ? data.find(item => item.id === parseInt(id)) : null;
-    console.log("selectedData---------|||------------", selectedData);
+  console.log("selectedData---------|||------------", selectedData);
+
   useEffect(() => {
     if (selectedData) {
       setFormData(selectedData);
     }
   }, [selectedData]);
-  
+
   console.log("$$$$$$$-----4$$$$$-----$$$$", data);
+
   const [formData, setFormData] = useState(data && data.length ? selectedData : {
     title: "",
     businessType: "",
@@ -49,26 +46,13 @@ function FormTemplate({data = null}) {
     carouselImages2: [],
     services: [{ name: "", description: "", carouselImagesServicio: "" }],
     centralCarousel: [{ image: "", description: "" }],
-    emailClient: (() => {
-      if (token) {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.email;
-      }
-      return "";
-    })()
+    emailClient: "",
+    movableCells: [{ id: 1, content: "Celda 1" }, { id: 2, content: "Celda 2" }],
   });
-  
-  console.log(" localStorage.getItem>>>>>>>>>>>>>",   (() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.email;
-    }
-    return "";
-  })());
 
   const [preview, setPreview] = useState(false);
   const [activeAccordion, setActiveAccordion] = useState(null);
+  const [draggedCell, setDraggedCell] = useState(null);
 
   const toggleAccordion = (section) => {
     setActiveAccordion((prev) => (prev === section ? null : section));
@@ -230,114 +214,164 @@ function FormTemplate({data = null}) {
     }));
   };
 
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    toast.info("Cerrando sesión...");
-    setTimeout(() => (window.location.href = "/auth"), 1500);
-    // navigate("/auth", { replace: true }); // Redirige al usuario al inicio de sesión (u otra ruta)
+  const handleDragStart = (index) => {
+    setDraggedCell(index);
   };
+
+  const handleDrop = (index) => {
+    if (draggedCell !== null) {
+      const updatedCells = [...formData.movableCells];
+      const [removed] = updatedCells.splice(draggedCell, 1);
+      updatedCells.splice(index, 0, removed);
+      setFormData((prevData) => ({
+        ...prevData,
+        movableCells: updatedCells,
+      }));
+      setDraggedCell(null);
+    }
+  };
+
+  const renderMovableCells = () => {
     return (
-       <>
-         {token && (
-            <div style={{ textAlign: "right", padding: "10px", margin: "10px" }}>
-                <a href="/">
-                <button className="accionButton" onClick={handleLogout} >Salir</button>
-              </a>
-                <a href="/admin/">
-                <button className="accionButton"  >admin</button>
-              </a>
-            </div>  
-          )}
-             
+      <div>
+        <h2 className="switchcontainer">
+          Celdas Movibles
+          <label className="toggle-switch" style={{ marginLeft: "10px" }}>
+            <input
+              type="checkbox"
+              checked={activeAccordion === "movableCells"}
+              onChange={() => toggleAccordion("movableCells")}
+            />
+            <div>
+              <span className="slider"></span>
+            </div>
+          </label>
+        </h2>
+        {activeAccordion === "movableCells" && (
+          <div>
+            {formData.movableCells.map((cell, index) => (
+              <div
+                key={cell.id}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleDrop(index)}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "10px",
+                  margin: "5px 0",
+                  cursor: "move",
+                }}
+              >
+                <input
+                  type="text"
+                  value={cell.content}
+                  onChange={(e) => {
+                    const updatedCells = [...formData.movableCells];
+                    updatedCells[index].content = e.target.value;
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      movableCells: updatedCells,
+                    }));
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <>
       <div className="generatecontainer">
         <h1 className="hedercontainer">Generador de Página Web</h1>
         <form onSubmit={(e) => e.preventDefault()} style={{ maxWidth: "600px", margin: "auto" }}>
-
           {/* Información General */}
-<h2 className="switchcontainer">
-  Información General
-  <label className="toggle-switch" style={{ marginLeft: "10px" }}>
-    <input
-      type="checkbox"
-      checked={activeAccordion === "general"}
-      onChange={() => toggleAccordion("general")}
-    />
-    <div>
-      <span className="slider"></span>
-    </div>
-  </label>
-</h2>
-{activeAccordion === "general" && (
-  <div>
-    <label htmlFor="title">Título de la Página:</label>
-    <input
-      className="inputcontainer"
-      type="text"
-      id="title"
-      name="title"
-      value={formData.title}
-      onChange={handleChange}
-      required
-    />
-    <label htmlFor="businessType">Tipo de Negocio:</label>
-    <select
-      className="inputcontainer"
-      id="businessType"
-      name="businessType"
-      value={formData.businessType}
-      onChange={handleChange}
-      required
-    >
-      <option value="">Seleccione un tipo de negocio</option>
-            <option value="Restaurante">Restaurante</option>
-            <option value="Tienda de Ropa">Tienda de Ropa</option>
-            <option value="Consultoría">Consultoría</option>
-            <option value="Tecnología">Tecnología</option>
-            <option value="Educación">Educación</option>
-            <option value="Salud y Bienestar">Salud y Bienestar</option>
-            <option value="Gimnasio">Gimnasio</option>
-            <option value="Supermercado">Supermercado</option>
-            <option value="Agencia de Viajes">Agencia de Viajes</option>
-            <option value="Peluquería">Peluquería</option>
-            <option value="Inmobiliaria">Inmobiliaria</option>
-            <option value="Marketing Digital">Marketing Digital</option>
-            <option value="Eventos">Eventos</option>
-            <option value="Tienda Online">Tienda Online</option>
-            <option value="Otro">Otro</option>
-    </select>
-    <label htmlFor="address">Dirección:</label>
-    <input
-      className="inputcontainer"
-      type="text"
-      id="address"
-      name="address"
-      value={formData.address}
-      onChange={handleChange}
-      required
-    />
-    <label htmlFor="phone">Teléfono:</label>
-    <input
-      className="inputcontainer"
-      type="tel"
-      id="phone"
-      name="phone"
-      value={formData.phone}
-      onChange={handleChange}
-      required
-    />
-    <label htmlFor="email">Correo Electrónico:</label>
-    <input
-      className="inputcontainer"
-      type="email"
-      id="email"
-      name="email"
-      value={formData.email}
-      onChange={handleChange}
-      required
-    />
-  </div>
-)}
+          <h2 className="switchcontainer">
+            Información General
+            <label className="toggle-switch" style={{ marginLeft: "10px" }}>
+              <input
+                type="checkbox"
+                checked={activeAccordion === "general"}
+                onChange={() => toggleAccordion("general")}
+              />
+              <div>
+                <span className="slider"></span>
+              </div>
+            </label>
+          </h2>
+          {activeAccordion === "general" && (
+            <div>
+              <label htmlFor="title">Título de la Página:</label>
+              <input
+                className="inputcontainer"
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+              />
+              <label htmlFor="businessType">Tipo de Negocio:</label>
+              <select
+                className="inputcontainer"
+                id="businessType"
+                name="businessType"
+                value={formData.businessType}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Seleccione un tipo de negocio</option>
+                <option value="Restaurante">Restaurante</option>
+                <option value="Tienda de Ropa">Tienda de Ropa</option>
+                <option value="Consultoría">Consultoría</option>
+                <option value="Tecnología">Tecnología</option>
+                <option value="Educación">Educación</option>
+                <option value="Salud y Bienestar">Salud y Bienestar</option>
+                <option value="Gimnasio">Gimnasio</option>
+                <option value="Supermercado">Supermercado</option>
+                <option value="Agencia de Viajes">Agencia de Viajes</option>
+                <option value="Peluquería">Peluquería</option>
+                <option value="Inmobiliaria">Inmobiliaria</option>
+                <option value="Marketing Digital">Marketing Digital</option>
+                <option value="Eventos">Eventos</option>
+                <option value="Tienda Online">Tienda Online</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <label htmlFor="address">Dirección:</label>
+              <input
+                className="inputcontainer"
+                type="text"
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              />
+              <label htmlFor="phone">Teléfono:</label>
+              <input
+                className="inputcontainer"
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+              />
+              <label htmlFor="email">Correo Electrónico:</label>
+              <input
+                className="inputcontainer"
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          )}
 
           {/* Redes Sociales */}
           <h2 className="switchcontainer">
@@ -349,8 +383,9 @@ function FormTemplate({data = null}) {
                 onChange={() => toggleAccordion("social")}
               />
               <div>
-              <span className="slider"></span>
-              </div>            </label>
+                <span className="slider"></span>
+              </div>
+            </label>
           </h2>
           {activeAccordion === "social" && (
             <div>
@@ -379,8 +414,9 @@ function FormTemplate({data = null}) {
                 onChange={() => toggleAccordion("logo")}
               />
               <div>
-              <span className="slider"></span>
-              </div>            </label>
+                <span className="slider"></span>
+              </div>
+            </label>
           </h2>
           {activeAccordion === "logo" && (
             <div>
@@ -404,8 +440,9 @@ function FormTemplate({data = null}) {
                 onChange={() => toggleAccordion("carouselCentral")}
               />
               <div>
-              <span className="slider"></span>
-              </div>            </label>
+                <span className="slider"></span>
+              </div>
+            </label>
           </h2>
           {activeAccordion === "carouselCentral" && (
             <div>
@@ -449,8 +486,9 @@ function FormTemplate({data = null}) {
                 onChange={() => toggleAccordion("carousels")}
               />
               <div>
-              <span className="slider"></span>
-              </div>            </label>
+                <span className="slider"></span>
+              </div>
+            </label>
           </h2>
           {activeAccordion === "carousels" && (
             <div>
@@ -483,8 +521,9 @@ function FormTemplate({data = null}) {
                 onChange={() => toggleAccordion("services")}
               />
               <div>
-              <span className="slider"></span>
-              </div>            </label>
+                <span className="slider"></span>
+              </div>
+            </label>
           </h2>
           {activeAccordion === "services" && (
             <div>
@@ -529,6 +568,8 @@ function FormTemplate({data = null}) {
             </div>
           )}
 
+          {renderMovableCells()}
+
           <div style={{ marginTop: "20px", textAlign: "center" }}>
             <button type="button" onClick={handleGeneratePage}>
               Generar Página
@@ -536,8 +577,8 @@ function FormTemplate({data = null}) {
           </div>
         </form>
       </div>
-       </> 
-    );
-};
+    </>
+  );
+}
 
 export default FormTemplate;
