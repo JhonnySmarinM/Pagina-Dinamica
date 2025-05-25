@@ -1,783 +1,162 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import GridLayout from "react-grid-layout";
+import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 
-function GeneralRenderTemplate({ datas = {} }) {
-  const navigate = useNavigate();
-  console.log("navigate recibidos:", navigate);
-  console.log("Datos recibidos:", datas);
-  let [data, setData] = useState(datas);
-  console.log("data---------|||------------", data);
+const defaultLayout = [
+  { i: "1", x: 0, y: 0, w: 1, h: 1 },
+  { i: "2", x: 1, y: 0, w: 1, h: 1 },
+  { i: "3", x: 2, y: 0, w: 1, h: 1 },
+  { i: "4", x: 3, y: 0, w: 1, h: 1 },
+  { i: "5", x: 0, y: 1, w: 1, h: 1 },
+  { i: "6", x: 1, y: 1, w: 1, h: 1 },
+  { i: "7", x: 2, y: 1, w: 1, h: 1 },
+  { i: "8", x: 3, y: 1, w: 1, h: 1 },
+  { i: "9", x: 0, y: 2, w: 1, h: 1 },
+  { i: "10", x: 1, y: 2, w: 1, h: 1 },
+  { i: "11", x: 2, y: 2, w: 1, h: 1 },
+  { i: "12", x: 3, y: 2, w: 1, h: 1 },
+  { i: "13", x: 0, y: 3, w: 1, h: 1 },
+  { i: "14", x: 1, y: 3, w: 1, h: 1 },
+  { i: "15", x: 2, y: 3, w: 1, h: 1 },
+  { i: "16", x: 3, y: 3, w: 1, h: 1 },
+];
 
-  const location = useLocation();
-  console.log("location", location);
+const defaultMovableCells = [
+  { id: "1", content: "LOGO", bgColor: "#FFFFFF" },
+  { id: "2", content: "REDES", bgColor: "#EAEAEA" },
+  { id: "3", content: "PUBLICIDAD 1", bgColor: "#FFDDC1" },
+  { id: "4", content: "PUBLICIDAD 2", bgColor: "#FFC8DD" },
+  { id: "5", content: "VIDEO CORPORATIVO", bgColor: "#C1E1FF" },
+  { id: "6", content: "EMPRESA", bgColor: "#C1FFD7" },
+  { id: "7", content: "PRODUCTOS Y SERVICIOS", bgColor: "#F9F9A1" },
+  { id: "8", content: "RESERVAS USUARI@S", bgColor: "#FFB3BA" },
+  { id: "9", content: "CALENDARIO EVENTOS", bgColor: "#D5BAFF" },
+  { id: "10", content: "FOTO/TEXTO 1", bgColor: "#FCD5CE" },
+  { id: "11", content: "FOTO/TEXTO 2", bgColor: "#D0F4DE" },
+  { id: "12", content: "FOTO/TEXTO 3", bgColor: "#FFDAC1" },
+  { id: "13", content: "SLIDE 1", bgColor: "#E0BBE4" },
+  { id: "14", content: "SLIDE 2", bgColor: "#FFDFD3" },
+  { id: "15", content: "SLIDE 3", bgColor: "#CDEAC0" },
+  { id: "16", content: "SLIDE 4", bgColor: "#B5EAD7" },
+];
 
-  const url = window.location.href;
-  const id = url.split("/")[4]; // Assuming the ID is the second parameter after the domain
-  // confirm("id-----444-44444--", id);
+const GeneralRenderTemplate = (props) => {
+  // Permitir recibir celdas y layout por props (para vista generada)
+  const layoutFromProps = props.layout || defaultLayout;
+  const cellsFromProps = props.movableCells || defaultMovableCells;
+  const [layout, setLayout] = useState(layoutFromProps);
+  const [movableCells, setMovableCells] = useState(cellsFromProps);
 
-  useEffect(() => {
-    if (selectedData) {
-      setFormData(selectedData);
-    }
-  }, [setData]);
+  // Si llegan props nuevos, actualiza el estado
+  React.useEffect(() => {
+    if (props.layout) setLayout(props.layout);
+    if (props.movableCells) setMovableCells(props.movableCells);
+  }, [props.layout, props.movableCells]);
 
-
-
-  const selectedData = datas ? datas.find(item => item.id === parseInt(id)) : null;
-  console.log("selectedData---------|||------------", selectedData);
-
-  data = selectedData;
-
-
-
-  // Estado para controlar la visibilidad de los modales
-  const [isHomeModalOpen, setHomeModalOpen] = useState(false);
-  const [isServicesModalOpen, setServicesModalOpen] = useState(false);
-  const [isContactModalOpen, setContactModalOpen] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const [currentIndex1, setCurrentIndex1] = useState(0);
-  const [currentIndex2, setCurrentIndex2] = useState(0);
-  const [currentIndex3, setCurrentIndex3] = useState(0);
-  const [currentIndex4, setCurrentIndex4] = useState(0);
-  const [isLoading, setIsLoading] = useState(false); // Estado para el spinner y deshabilitar botón
-  const [formData, setFormData] = useState({}); // Tu estado de datos (anteriormente data)
-  const [responsePreview, setResponsePreview] = useState(null); // Estado para la previsualización (anteriormente preview)
-
-  const handleIndicatorClick = (index, carouselNumber) => {
-    if (carouselNumber === 1) {
-      setCurrentIndex1(index);
-      document.querySelector(".carousel1").scrollTo({
-        left: index * 310,
-        behavior: "smooth",
-      });
-    } else if (carouselNumber === 2) {
-      setCurrentIndex2(index);
-      document.querySelector(".carousel2").scrollTo({
-        left: index * 310,
-        behavior: "smooth",
-      });
-    } else if (carouselNumber === 3) {
-      setCurrentIndex3(index);
-      document.querySelector(".carousel3").scrollTo({
-        left: index * 310,
-        behavior: "smooth",
-      });
-    } else if (carouselNumber === 4) {
-      setCurrentIndex4(index);
-      document.querySelector(".carousel4").scrollTo({
-        left: index * 310,
-        behavior: "smooth",
-      });
-    }
+  const handleLayoutChange = (newLayout) => {
+    setLayout(newLayout);
   };
 
-  // Funciones para abrir y cerrar los modales
-  const openHomeModal = () => setHomeModalOpen(true);
-  const closeHomeModal = () => setHomeModalOpen(false);
-
-  const openServicesModal = () => setServicesModalOpen(true);
-  const closeServicesModal = () => setServicesModalOpen(false);
-
-  const openContactModal = () => setContactModalOpen(true);
-  const closeContactModal = () => setContactModalOpen(false);
-
-  useEffect(() => {
-    // Intervalo para mover los carruseles automáticamente
-    const interval = setInterval(() => {
-      const carousels = document.querySelectorAll('.carousel');
-      carousels.forEach(carousel => {
-        carousel.scrollBy({ left: 300, behavior: "smooth" });
-      });
-    }, 2000); // Mueve el carrusel cada 2 segundos
-
-    return () => clearInterval(interval); // Limpiar el intervalo cuando el componente se desmonte
-  }, []);
-
-
-
-  return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100vw",
-        backgroundColor: "#f5f5f5",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        overflowX: "hidden",
-      }}
-    >
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "20px",
-          width: "100%",
-          backgroundColor: "#fff",
-          boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
-
-        }}
-      >
-        {/* Logo */}
-        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+  const renderCellContent = (cell) => {
+    switch (cell.type) {
+      case "image":
+        return (
           <img
-            src={data.logo || "default-logo.jpg"}
-            alt="Logo"
-            style={{ height: "200px" }}
+            src={cell.value}
+            alt="Celda Imagen"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
           />
-        </div>
-
-        {/* Redes Sociales y Carruseles */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "20px",
-            flex: 2,
-            maxWidth: "900px",
-          }}
-        >
-          {/* Redes Sociales */}
+        );
+      case "video":
+        // Si es un enlace de YouTube, embebe el video
+        if (cell.value && cell.value.includes("youtube.com")) {
+          const videoId = cell.value.split("v=")[1]?.split("&")[0];
+          return (
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title="Video"
+              frameBorder="0"
+              allowFullScreen
+            />
+          );
+        }
+        // Si es un enlace directo a video
+        return (
+          <video controls style={{ width: "100%", height: "100%" }}>
+            <source src={cell.value} />
+            Tu navegador no soporta el tag de video.
+          </video>
+        );
+      case "text":
+        // Renderiza texto plano
+        return (
           <div
             style={{
-              width: "25%",
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-around",
-              gap: "10px",
-            }}
-          >
-            {/* WhatsApp */}
-            <a href="https://web.whatsapp.com/"
-              style={{
-                backgroundColor: "#25D366",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fab fa-whatsapp" style={{ fontSize: "24px" }}></i>
-            </a>
-
-            {/* Facebook */}
-            <a href="https://www.facebook.com/"
-              style={{
-                backgroundColor: "#3b5998",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fab fa-facebook-f" style={{ fontSize: "24px" }}></i>
-            </a>
-
-            {/* Instagram */}
-            <a href="https://www.instagram.com/"
-              style={{
-                backgroundColor: "#E1306C",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fab fa-instagram" style={{ fontSize: "24px" }}></i>
-            </a>
-
-            {/* LinkedIn */}
-            <a href="https://www.linkedin.com/login/es"
-              style={{
-                backgroundColor: "#0077B5",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fab fa-linkedin-in" style={{ fontSize: "24px" }}></i>
-            </a>
-
-            {/* TikTok */}
-            <a href="https://www.tiktok.com/"
-              style={{
-                backgroundColor: "#000000",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fab fa-tiktok" style={{ fontSize: "24px" }}></i>
-            </a>
-
-            {/* Telegram */}
-            <a href="https://web.telegram.org/"
-              style={{
-                backgroundColor: "#0088cc",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fab fa-telegram-plane" style={{ fontSize: "24px" }}></i>
-            </a>
-
-            {/* Gmail */}
-            <a href="mailto:tucorreo@gmail.com"
-              style={{
-                backgroundColor: "#D14836",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fas fa-envelope" style={{ fontSize: "24px" }}></i>
-            </a>
-
-            {/* Pinterest */}
-            <a href="https://www.pinterest.com/"
-              style={{
-                backgroundColor: "#E60023",
-                padding: "10px",
-                borderRadius: "5px",
-                display: "inline-block",
-                margin: "1px",
-                color: "#fff",
-              }}
-            >
-              <i className="fab fa-pinterest" style={{ fontSize: "24px" }}></i>
-            </a>
-          </div>
-
-
-
-          {/* Carruseles */}
-          <div
-            style={{
-              display: "flex",
-              gap: "20px",
-              flex: 2,
+              fontWeight: "bold",
+              textAlign: "center",
+              fontSize: "1.1rem",
+              wordWrap: "break-word",
               width: "100%",
             }}
           >
-            {/* Primer Carrusel */}
-            <div style={{ maxWidth: "400px", margin: "0 auto" }}>
-              <div
-                className="carousel carousel1"
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  overflowX: "hidden",
-                  scrollBehavior: "smooth",
-                  flex: 1,
-                }}
-              >
-                {data.carouselImages2 && data.carouselImages2.map((img, index) => (
-                  <img
-                    key={index}
-                    src={`${img}`}
-                    alt="Viajes"
-                    style={{
-                      height: "200px",
-                      width: "300px",
-                      borderRadius: "10px",
-                      flexShrink: 0,
-                      objectFit: "cover",
-                    }}
-                  />
-                ))}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "10px",
-                }}
-              >
-                {data.carouselImages2 && data.carouselImages2.map((_, index) => (
-                  <span
-                    key={index}
-                    onClick={() => handleIndicatorClick(index, 1)}
-                    style={{
-                      height: "10px",
-                      width: "10px",
-                      margin: "0 5px",
-                      borderRadius: "50%",
-                      backgroundColor: currentIndex1 === index ? "#333" : "#ccc",
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-            <div style={{ maxWidth: "400px", margin: "0 auto" }}>
-              <div
-                className="carousel carousel2"
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  overflowX: "hidden",
-                  scrollBehavior: "smooth",
-                  flex: 1,
-                }}
-              >
-                {data.carouselImages && data.carouselImages.map((img, index) => (
-                  <img
-                    key={index}
-                    src={`${img}`}
-                    alt="Comida"
-                    style={{
-                      height: "200px",
-                      width: "300px",
-                      borderRadius: "10px",
-                      flexShrink: 0,
-                      objectFit: "cover",
-                    }}
-                  />
-                ))}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "10px",
-                }}
-              >
-                {data.carouselImages && data.carouselImages.map((_, index) => (
-                  <span
-                    key={index}
-                    onClick={() => handleIndicatorClick(index, 2)}
-                    style={{
-                      height: "10px",
-                      width: "10px",
-                      margin: "0 5px",
-                      borderRadius: "50%",
-                      backgroundColor: currentIndex2 === index ? "#333" : "#ccc",
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
+            {cell.value}
           </div>
-        </div>
-      </header>
+        );
+      default:
+        return (
+          <div
+            style={{
+              fontWeight: "bold",
+              textAlign: "center",
+              fontSize: "1.1rem",
+              wordWrap: "break-word",
+              width: "100%",
+            }}
+          >
+            {cell.value}
+          </div>
+        );
+    }
+  };
 
-      {/* Botones */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1400px", // Increased maxWidth for wider container
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          padding: "20px",
-        }}
+  return (
+    <div className="template" style={{ padding: "1rem" }}>
+      <GridLayout
+        className="layout"
+        layout={layout}
+        cols={4}
+        rowHeight={150}
+        width={1200}
+        onLayoutChange={handleLayoutChange}
+        draggableHandle=".react-grid-item"
       >
-        <button
-          onClick={openHomeModal}
-          style={{
-            backgroundColor: "transparent",
-            border: "2px solid #007BFF",
-            color: "#007BFF",
-            padding: "10px 20px",
-            borderRadius: "5px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          Home
-        </button>
-        <button
-          onClick={openServicesModal}
-          style={{
-            backgroundColor: "transparent",
-            border: "2px solid #007BFF",
-            color: "#007BFF",
-            padding: "10px 20px",
-            borderRadius: "5px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          Servicios
-        </button>
-        <button
-          onClick={openContactModal}
-          style={{
-            backgroundColor: "transparent",
-            border: "2px solid #007BFF",
-            color: "#007BFF",
-            padding: "10px 20px",
-            borderRadius: "5px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          Contactanos
-        </button>
-      </div>
+        {movableCells.map((cell) => (
+          <div
+            key={cell.id}
+            className="react-grid-item"
+            style={{
+              backgroundColor: cell.bgColor,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid #ccc",
+              borderRadius: "10px",
+              overflow: "hidden",
+            }}
+          >
+            {renderCellContent(cell)}
+          </div>
+        ))}
+      </GridLayout>
 
-      {/* Carrusel Central */}
-      <div style={{ maxWidth: "1400px", margin: "0 auto", height: "300px" }}> {/* Increased maxWidth for wider container */}
-        <div
-          className="carousel carousel3"
-          style={{
-            display: "flex",
-            gap: "0px", // Increased gap between cards
-            padding: "20px",
-            height: "auto",
-            minHeight: "300px",
-            marginTop: "20px",
-            flex: 1,
-            overflowX: "hidden",
-            scrollBehavior: "smooth",
-          }}
-        >
-          {/* Verifica si hay servicios */}
-          {data.centralCarousel && data.centralCarousel.length > 0 ? (
-            data.centralCarousel.map((service, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex", // Align horizontally
-                  alignItems: "center", // Center vertically
-                  gap: "20px", // Space between image and text
-                  minWidth: "500px", // Ensure cards are larger
-                  borderRadius: "10px",
-                  border: "1px solid #ddd",
-                  padding: "20px",
-                  boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)", // Enhanced shadow effect
-                  backgroundColor: "#fff",
-                  flexShrink: 0,
-                  transition: "transform 0.3s ease",
-                }}
-              >
-                <img
-                  src={service.image}
-                  alt={`Service Image ${index}`}
-                  style={{
-                    width: "200px", // Larger image size
-                    height: "200px", // Larger image size
-                    objectFit: "cover",
-                    borderRadius: "10px",
-                  }}
-                />
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "#555",
-                    lineHeight: "1.6",
-                    textAlign: "justify",
-                    flex: 1, // Allow text to take up remaining space
-                  }}
-                >
-                  {service.description}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p>No hay servicios disponibles seccion superior.</p>
-          )}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "10px",
-          }}
-        >
-          {data.centralCarousel &&
-            data.centralCarousel.length > 0 &&
-            data.centralCarousel.map((_, index) => (
-              <span
-                key={index}
-                onClick={() => handleIndicatorClick(index, 3)}
-                style={{
-                  height: "10px",
-                  width: "10px",
-                  margin: "0 5px",
-                  borderRadius: "50%",
-                  backgroundColor: currentIndex3 === index ? "#333" : "#ccc",
-                  cursor: "pointer",
-                }}
-              />
-            ))}
-        </div>
-      </div>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <div
-          className="carousel carousel4"
-          style={{
-            display: "flex",
-            gap: "20px",
-            padding: "20px", // Ajusta el padding para dar más espacio
-            height: "auto",  // Asegura que el contenedor se ajuste al contenido
-            minHeight: "350px", // O un valor mayor si deseas un espacio fijo
-            marginTop: "20px",
-            flex: 1,
-            overflowX: "hidden",
-            scrollBehavior: "smooth", // Desplazamiento suave
-          }}
-        >
-          {/* Verifica si hay servicios */}
-          {data.services && data.services.length > 0 ? (
-            data.services.map((service, index) => (
-              <div
-                key={index}
-                style={{
-                  minWidth: "250px", // Tamaño mínimo de cada tarjeta
-                  height: "auto",
-                  borderRadius: "10px",
-                  border: "1px solid #ddd", // Borde de la tarjeta
-                  padding: "20px",
-                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Sombra para el efecto de profundidad
-                  backgroundColor: "#fff",
-                  flexShrink: 0, // Asegurarse de que no se reduzca el tamaño de las tarjetas
-                  transition: "transform 0.3s ease", // Animación para el efecto hover
-                }}
-              >
-                <img
-                  src={service.carouselImagesServicio}
-                  alt={`Service Image ${index}`}
-                  style={{
-                    width: "100%",
-                    height: "150px",
-                    objectFit: "cover",
-                    borderRadius: "10px", // Bordes redondeados de la imagen
-                    marginBottom: "15px",
-                  }}
-                />
-                <h3
-                  style={{
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    marginBottom: "10px",
-                    color: "#333",
-                  }}
-                >
-                  {service.name}
-                </h3>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "#555",
-                    lineHeight: "1.6",
-                    textAlign: "justify",
-                  }}
-                >
-                  {service.description}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p>No hay servicios disponibles carrusel Central.</p>
-          )}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "10px",
-          }}
-        >
-          {data.services && data.services.length > 0 && data.services.map((_, index) => (
-            <span
-              key={index}
-              onClick={() => handleIndicatorClick(index, 4)}
-              style={{
-                height: "10px",
-                width: "10px",
-                margin: "0 5px",
-                borderRadius: "50%",
-                backgroundColor: currentIndex4 === index ? "#333" : "#ccc",
-                cursor: "pointer",
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
-
-      {/* Footer */}
-      <footer
-        style={{
-          width: "100%",
-          backgroundColor: "#007BFF",
-          color: "#fff",
-          padding: "20px",
-          textAlign: "center",
-          position: "relative",
-          bottom: 0,
-          marginTop: "2%",
-        }}
-      >
-        <div>
-           {data.phone}
-        </div>
-        <div>
-           {data.address}
-        </div>
-        <div>
-           {data.email}
-        </div>
-
-        <p className="footer-text">
-          &copy; 2025 Mi Compañía. Todos los derechos reservados.
-        </p>
+      <footer style={{ marginTop: "2rem", textAlign: "center" }}>
+        <hr />
+        <p>© {new Date().getFullYear()} Todos los derechos reservados</p>
       </footer>
-
-      {/* Modales */}
-      {isHomeModalOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-          onClick={closeHomeModal}
-        >
-          <div
-            style={{
-              backgroundColor: "#fff",
-              padding: "30px",
-              borderRadius: "10px",
-              width: "300px",
-              textAlign: "center",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>Bienvenido a Home</h2>
-            <p>Esta es la ventana emergente para la página Home.</p>
-            <button
-              onClick={closeHomeModal}
-              style={{
-                backgroundColor: "#007BFF",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isServicesModalOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-          onClick={closeServicesModal}
-        >
-          <div
-            style={{
-              backgroundColor: "#fff",
-              padding: "30px",
-              borderRadius: "10px",
-              width: "300px",
-              textAlign: "center",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>Servicios</h2>
-            <p
-            className="services-text"
-            >Esta es la ventana emergente para los servicios.</p>
-            <button
-              onClick={closeServicesModal}
-              style={{
-                backgroundColor: "#007BFF",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isContactModalOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-          onClick={closeContactModal}
-        >
-          <div
-            style={{
-              backgroundColor: "#fff",
-              padding: "30px",
-              borderRadius: "10px",
-              width: "300px",
-              textAlign: "center",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>Contáctanos</h2>
-            <p>Esta es la ventana emergente para contactarnos.</p>
-            <button
-              onClick={closeContactModal}
-              style={{
-                backgroundColor: "#007BFF",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
-}
+};
 
 export default GeneralRenderTemplate;

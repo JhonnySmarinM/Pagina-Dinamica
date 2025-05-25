@@ -15,6 +15,20 @@ import Admin from "./components/Admin/Admin";
 import GeneralRenderTemplate from "./GeneralRenderTemplate";
 import Auth from "./components/auth/auth";
 
+// Add styles for grid cells
+const gridCellStyle = {
+  width: '100%',
+  height: '100%',
+  minHeight: '100px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid #ccc',
+  backgroundColor: '#fff',
+  padding: '10px',
+  boxSizing: 'border-box'
+};
+
 function App() {
   const [formData, setFormData] = useState({
     title: "",
@@ -38,7 +52,7 @@ function App() {
     carouselImages2: [],
     services: [{ name: "", description: "", carouselImagesServicio: "" }],
     centralCarousel: [{ image: "", description: "" }],
-    movableCells: [{ id: 1, content: "Celda 1" }, { id: 2, content: "Celda 2" }],
+    movableCells: [],
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -57,22 +71,26 @@ function App() {
   };
 
   const layout = [
-    { i: "1", x: 0, y: 0, w: 2, h: 2, static: false },
-    { i: "2", x: 2, y: 0, w: 2, h: 2, static: false },
-    { i: "3", x: 4, y: 0, w: 2, h: 2, static: false },
-    { i: "4", x: 0, y: 2, w: 2, h: 2, static: false },
-    { i: "5", x: 2, y: 2, w: 2, h: 2, static: false },
-    { i: "6", x: 4, y: 2, w: 2, h: 2, static: false },
-    { i: "7", x: 6, y: 2, w: 2, h: 2, static: false },
-    { i: "8", x: 0, y: 4, w: 2, h: 2, static: false },
-    { i: "9", x: 2, y: 4, w: 2, h: 2, static: false },
-    { i: "10", x: 4, y: 4, w: 2, h: 2, static: false },
-    { i: "11", x: 6, y: 4, w: 2, h: 2, static: false },
-    { i: "12", x: 0, y: 6, w: 2, h: 2, static: false },
-    { i: "13", x: 2, y: 6, w: 2, h: 2, static: false },
-    { i: "14", x: 4, y: 6, w: 2, h: 2, static: false },
-    { i: "15", x: 6, y: 6, w: 2, h: 2, static: false },
-    { i: "16", x: 6, y: 8, w: 2, h: 2, static: false },
+    // Fila 1
+    { i: "1", x: 0, y: 0, w: 2, h: 2, static: false }, // LOGO NOMBRE SLOGAN
+    { i: "2", x: 2, y: 0, w: 2, h: 2, static: false }, // CONTACT@ REDES S@CIALES
+    { i: "3", x: 4, y: 0, w: 2, h: 2, static: false }, // BANNER PUBLI 1 (fijo)
+    { i: "4", x: 6, y: 0, w: 2, h: 2, static: false }, // BANNER PUBLI 2 (slide)
+    // Fila 2
+    { i: "5", x: 0, y: 2, w: 2, h: 2, static: false }, // VIDEO CORPORATIVO (link YOUtube)
+    { i: "6", x: 2, y: 2, w: 2, h: 2, static: false }, // empresa
+    { i: "7", x: 4, y: 2, w: 2, h: 2, static: false }, // Productos Servicios
+    { i: "8", x: 6, y: 2, w: 2, h: 2, static: false }, // RESERVAS USUARI@S
+    // Fila 3
+    { i: "9", x: 0, y: 4, w: 2, h: 2, static: false }, // CALENDARIO EVENTOS
+    { i: "10", x: 2, y: 4, w: 2, h: 2, static: false }, // FOTO/ TEXTO 1
+    { i: "11", x: 4, y: 4, w: 2, h: 2, static: false }, // FOTO/ TEXTO 2
+    { i: "12", x: 6, y: 4, w: 2, h: 2, static: false }, // FOTO/ TEXTO 3
+    // Fila 4
+    { i: "13", x: 0, y: 6, w: 2, h: 2, static: false }, // SLIDE 1
+    { i: "14", x: 2, y: 6, w: 2, h: 2, static: false }, // SLIDE 2
+    { i: "15", x: 4, y: 6, w: 2, h: 2, static: false }, // SLIDE 3
+    { i: "16", x: 6, y: 6, w: 2, h: 2, static: false }, // SLIDE 4
   ];
 
   const carouselImages = [
@@ -106,23 +124,70 @@ function App() {
   }, []);
 
   const renderMovableCells = () => (
-    <GridLayout className="layout" layout={layout} cols={8} rowHeight={50} width={1200}>
-      {formData.movableCells.map((cell, index) => (
-        <div key={cell.id} className="box">
-          <input
-            type="text"
-            value={cell.content}
-            onChange={(e) => {
-              const updatedCells = [...formData.movableCells];
-              updatedCells[index].content = e.target.value;
-              setFormData((prevData) => ({
-                ...prevData,
-                movableCells: updatedCells,
-              }));
-            }}
-          />
-        </div>
-      ))}
+    <GridLayout className="layout" layout={layout} cols={8} rowHeight={180}>
+      {formData.movableCells.length > 0 ? (
+        formData.movableCells.map((cell, index) => (
+          <div key={cell.id} className="box" style={gridCellStyle}>
+            <input
+              type="text"
+              value={cell.content}
+              onChange={(e) => {
+                const updatedCells = [...formData.movableCells];
+                updatedCells[index].content = e.target.value;
+                setFormData((prevData) => ({
+                  ...prevData,
+                  movableCells: updatedCells,
+                }));
+              }}
+            />
+          </div>
+        ))
+      ) : (
+        <div key="no-cells">No hay celdas movibles disponibles.</div>
+      )}
+    </GridLayout>
+  );
+
+  const renderGridLayout = () => (
+    <GridLayout className="layout" layout={layout} cols={8} rowHeight={180}>
+      <div key="1" className="box" style={gridCellStyle}>
+        {logo ? (
+          <img src={logo} alt="Logo" style={{ maxWidth: "100%", maxHeight: "100%" }} />
+        ) : (
+          <>
+            <p>Sube tu logo</p>
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
+          </>
+        )}
+      </div>
+      <div key="2" className="box" style={gridCellStyle}>
+        <FaEnvelope size={30} />
+        <FaWhatsapp size={30} />
+        <FaFacebook size={30} />
+        <FaInstagram size={30} />
+      </div>
+      <div key="3" className="box" style={gridCellStyle}>
+        <Slider {...sliderSettings}>
+          {carouselImages.map((src, index) => (
+            <div key={index}>
+              <img src={src} alt={`Slide ${index + 1}`} style={{ maxWidth: "100%", maxHeight: "100%" }} />
+            </div>
+          ))}
+        </Slider>
+      </div>
+      <div key="4" className="box" style={gridCellStyle}>PUBLIC 2</div>
+      <div key="5" className="box" style={gridCellStyle}>VIDEO CORPORATIVO</div>
+      <div key="6" className="box" style={gridCellStyle}>EMPRESA</div>
+      <div key="7" className="box" style={gridCellStyle}>PRODUCTOS Y SERVICIOS</div>
+      <div key="8" className="box" style={gridCellStyle}>RESERVAS USUARIOS</div>
+      <div key="9" className="box" style={gridCellStyle}>CALENDARIO EVENTOS</div>
+      <div key="10" className="box" style={gridCellStyle}>FOTO/TEXTO 1</div>
+      <div key="11" className="box" style={gridCellStyle}>FOTO/TEXTO 2</div>
+      <div key="12" className="box" style={gridCellStyle}>FOTO/TEXTO 3</div>
+      <div key="13" className="box" style={gridCellStyle}>SLIDE 1</div>
+      <div key="14" className="box" style={gridCellStyle}>SLIDE 2</div>
+      <div key="15" className="box" style={gridCellStyle}>SLIDE 3</div>
+      <div key="16" className="box" style={gridCellStyle}>SLIDE 4</div>
     </GridLayout>
   );
 
@@ -140,61 +205,21 @@ function App() {
           </div>
         ) : (
           <>
-            <GridLayout className="layout" layout={layout} cols={8} rowHeight={50} width={1200}>
-              <div key="1" className="box">
-                {logo ? (
-                  <img src={logo} alt="Logo" style={{ width: "100%", height: "100%" }} />
-                ) : (
-                  <>
-                    <p>Sube tu logo</p>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} />
-                  </>
-                )}
-              </div>
-              <div key="2" className="box">
-                <FaEnvelope size={30} />
-                <FaWhatsapp size={30} />
-                <FaFacebook size={30} />
-                <FaInstagram size={30} />
-              </div>
-              <div key="3" className="box">
-                <Slider {...sliderSettings}>
-                  {carouselImages.map((src, index) => (
-                    <div key={index}>
-                      <img src={src} alt={`Slide ${index + 1}`} style={{ width: "100%", height: "100%" }} />
-                    </div>
-                  ))}
-                </Slider>
-              </div>
-              <div key="4" className="box">PUBLIC 2</div>
-              <div key="5" className="box">VIDEO CORPORATIVO</div>
-              <div key="6" className="box">EMPRESA</div>
-              <div key="7" className="box">PRODUCTOS Y SERVICIOS</div>
-              <div key="8" className="box">RESERVAS USUARIOS</div>
-              <div key="9" className="box">CALENDARIO EVENTOS</div>
-              <div key="10" className="box">FOTO/TEXTO 1</div>
-              <div key="11" className="box">FOTO/TEXTO 2</div>
-              <div key="12" className="box">FOTO/TEXTO 3</div>
-              <div key="13" className="box">SLIDE 1</div>
-              <div key="14" className="box">SLIDE 2</div>
-              <div key="15" className="box">SLIDE 3</div>
-              <div key="16" className="box">SLIDE 4</div>
-            </GridLayout>
             <Routes>
               <Route path="/" element={<FormTemplate />} />
               <Route
                 path="/webtemplateCreate"
                 element={
-                  <div>
-                    <h1>{formData.title}</h1>
-                    {renderMovableCells()}
-                  </div>
+                  <GeneralRenderTemplate
+                    layout={formData.movableCells && formData.movableCells.length === 16 ? layout : undefined}
+                    movableCells={formData.movableCells && formData.movableCells.length === 16 ? formData.movableCells : undefined}
+                  />
                 }
               />
               <Route path="/admin" element={<Admin data={dataProps} />} />
               <Route
                 path="/mypage/:id"
-                element={<GeneralRenderTemplate datas={dataProps} />}
+                element={<GeneralRenderTemplate datas={dataProps} gridLayout={renderGridLayout()} />}
               />
               <Route path="/:id" element={<FormTemplate data={dataProps} />} />
               <Route path="/auth" element={<Auth />} />
