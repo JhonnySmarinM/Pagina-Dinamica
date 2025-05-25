@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
 import GridLayout from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -110,17 +110,17 @@ function App() {
   };
 
   useEffect(() => {
-    axios
-      .get("https://login-1k91.onrender.com/api/v1/dataform/")
-      .then((res) => {
-        console.log("Fetched data:", res.data);
-        setDataProps(res.data);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching data:", err);
-        setIsLoading(false);
-      });
+    // axios
+    //   .get("https://login-1k91.onrender.com/api/v1/dataform/")
+    //   .then((res) => {
+    //     console.log("Fetched data:", res.data);
+    //     setDataProps(res.data);
+    //     setIsLoading(false);
+    //   })
+    //   .catch((err) => {
+    //     console.error("Error fetching data:", err);
+    //     setIsLoading(false);
+    //   });
   }, []);
 
   const renderMovableCells = () => (
@@ -211,8 +211,8 @@ function App() {
                 path="/webtemplateCreate"
                 element={
                   <GeneralRenderTemplate
-                    layout={formData.movableCells && formData.movableCells.length === 16 ? layout : undefined}
-                    movableCells={formData.movableCells && formData.movableCells.length === 16 ? formData.movableCells : undefined}
+                    layout={layout}
+                    movableCells={JSON.parse(window.sessionStorage.getItem('movableCells')) || []}
                   />
                 }
               />

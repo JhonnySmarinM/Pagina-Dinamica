@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThreeDots } from 'react-loader-spinner';
@@ -27,20 +27,20 @@ const Auth = () => {
 
     const handleLogin = () => {
         setLoading(true);
-        axios.post('https://login-1k91.onrender.com/api/v1/token/', { email, password })
-        .then(response => {
-            const { access } = response.data;
-            localStorage.setItem('token', access);
-            setToken(access);
-            toast.success('Success login 🎉');
-            setTimeout(() => {
-                window.location.href = '/FormData';
-            }, 1500);
-        })
-        .catch(error => {
-            toast.error('Error in login 😞');
-        })
-        .finally(() => setLoading(false));
+        // axios.post('https://login-1k91.onrender.com/api/v1/token/', { email, password })
+        // .then(response => {
+        //     const { access } = response.data;
+        //     localStorage.setItem('token', access);
+        //     setToken(access);
+        //     toast.success('Success login 🎉');
+        //     setTimeout(() => {
+        //         window.location.href = '/FormData';
+        //     }, 1500);
+        // })
+        // .catch(error => {
+        //     toast.error('Error in login 😞');
+        // })
+        // .finally(() => setLoading(false));
     };
 
     const handleRegister = () => {
@@ -50,15 +50,15 @@ const Auth = () => {
         }
         
         setLoading(true);
-        axios.post('https://login-1k91.onrender.com/api/v1/register/', { email, username, password, password2 })
-        .then(() => {
-            toast.success('Registration successful! 🎉');
-            setTimeout(() => setIsRegistering(false), 1500);
-        })
-        .catch(error => {
-            toast.error('Error in registration ❌');
-        })
-        .finally(() => setLoading(false));
+        // axios.post('https://login-1k91.onrender.com/api/v1/register/', { email, username, password, password2 })
+        // .then(() => {
+        //     toast.success('Registration successful! 🎉');
+        //     setTimeout(() => setIsRegistering(false), 1500);
+        // })
+        // .catch(error => {
+        //     toast.error('Error in registration ❌');
+        // })
+        // .finally(() => setLoading(false));
     };
 
     const handlePasswordChange = async () => {
@@ -70,33 +70,33 @@ const Auth = () => {
         setLoading(true);
 
         try {
-            const response = await axios.get(`https://login-1k91.onrender.com/api/v1/register/`);
-            const users = response.data;
+            // const response = await axios.get(`https://login-1k91.onrender.com/api/v1/register/`);
+            // const users = response.data;
 
-            if (!users.length) {
-                throw new Error('User not found');
-            }
+            // if (!users.length) {
+            //     throw new Error('User not found');
+            // }
 
-            const user = users.find(user => user.email === email);
-            if (!user) {
-                throw new Error('User not found');
-            }
+            // const user = users.find(user => user.email === email);
+            // if (!user) {
+            //     throw new Error('User not found');
+            // }
 
             const payload = {
-                email: user.email,  // Asegúrate de obtener estos valores correctamente
-                username: user.username,
+                email: email,  // Asegúrate de obtener estos valores correctamente
+                username: username,
                 password,
                 password2
             };
             console.log('Sending PUT request to:', `https://login-1k91.onrender.com/api/v1/register/${user.id}/`);
             console.log('Payload:', JSON.stringify(payload));
 
-            await axios.put(`https://login-1k91.onrender.com/api/v1/register/${user.id}/`, payload, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
+            // await axios.put(`https://login-1k91.onrender.com/api/v1/register/${user.id}/`, payload, {
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Accept': 'application/json'
+            //     }
+            // });
 
             toast.success('Password changed successfully! 🎉');
             setIsChangingPassword(false);

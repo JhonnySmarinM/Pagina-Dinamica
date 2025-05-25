@@ -2,6 +2,10 @@
 import React, { useState, useEffect } from "react";
 // Importar hook para navegación programática
 import { useNavigate } from "react-router-dom";
+// Importar componentes de react-grid-layout
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 
 // Importar estilos CSS para este componente (o generales)
 import "./App.css";
@@ -13,8 +17,10 @@ function FormTemplate({ data = null, gridLayout = null }) {
 
   // Función para manejar la generación de la página y navegar a la vista previa
   const handleGeneratePage = () => {
-    // Navegar a la ruta /webtemplateCreate y pasar la info de las celdas generadas
-    navigate("/webtemplateCreate", { state: { ...formData, movableCells: getMovableCellsFromForm() } });
+    // Guarda las celdas en sessionStorage para que estén disponibles en la siguiente ruta
+    window.sessionStorage.setItem('movableCells', JSON.stringify(formData.movableCells)); // Usa el estado actualizado con layout
+    window.sessionStorage.setItem('formData', JSON.stringify(formData));
+    navigate("/webtemplateCreate");
   };
 
   // Obtener la URL current para extraer el ID si existe (para edición)
@@ -26,17 +32,8 @@ function FormTemplate({ data = null, gridLayout = null }) {
   const selectedData = data ? data.find(item => item.id === parseInt(id)) : null;
   console.log("selectedData---------|||------------", selectedData); // Log de los datos seleccionados
 
-  // Efecto para cargar los datos seleccionados en el estado del formulario cuando selectedData cambie
-  useEffect(() => {
-    if (selectedData) {
-      setFormData(selectedData); // Establecer el estado del formulario con los datos obtenidos
-    }
-  }, [selectedData]); // Dependencia: este efecto se ejecuta cuando selectedData cambia
-
-  console.log("$$$$$$$-----4$$$$$-----$$$$", data); // Log general de la prop data
-
   // Estado local para almacenar los datos del formulario
-  const [formData, setFormData] = useState(data && data.length ? selectedData : { // Inicializar con selectedData si existe, de lo contrario con valores por defecto
+  const [formData, setFormData] = useState({
     title: "", // Título de la página
     businessType: "", // Tipo de negocio
     address: "", // Dirección
@@ -59,28 +56,25 @@ function FormTemplate({ data = null, gridLayout = null }) {
     services: [{ name: "", description: "", carouselImagesServicio: "" }], // Array de servicios
     centralCarousel: [{ image: "", description: "" }], // Array para carrusel central
     emailClient: "", // Correo electrónico del cliente (parece no estar en el estado inicial de App.jsx)
-    movableCells: Array.from({ length: 16 }, (_, i) => ({
-      id: i + 1,
-      content: `Celda ${i + 1}`,
-      bgColor: [
-        "#D3D3D3", // 1
-        "#FF2D2D", // 2
-        "#A89C5D", // 3
-        "#FFC300", // 4
-        "#00BFFF", // 5
-        "#295A6D", // 6
-        "#2B7A78", // 7
-        "#FF6F00", // 8
-        "#FFFFFF", // 9
-        "#BDB89B", // 10
-        "#BDB89B", // 11
-        "#BDB89B", // 12
-        "#FF8000", // 13
-        "#FF8000", // 14
-        "#FF8000", // 15
-        "#FF8000"  // 16
-      ][i],
-    })),
+    // Inicializar movableCells con datos de diseño para react-grid-layout
+    movableCells: [
+      { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'Celda 1', bgColor: '#D3D3D3' },
+      { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'Celda 2', bgColor: '#FF2D2D' },
+      { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'Celda 3', bgColor: '#A89C5D' },
+      { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'Celda 4', bgColor: '#FFC300' },
+      { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'Celda 5', bgColor: '#00BFFF' },
+      { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'Celda 6', bgColor: '#295A6D' },
+      { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'Celda 7', bgColor: '#2B7A78' },
+      { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'Celda 8', bgColor: '#FF6F00' },
+      { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'Celda 9', bgColor: '#FFFFFF' },
+      { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'Celda 10', bgColor: '#BDB89B' },
+      { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'Celda 11', bgColor: '#BDB89B' },
+      { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'Celda 12', bgColor: '#BDB89B' },
+      { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'Celda 13', bgColor: '#FF8000' },
+      { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'Celda 14', bgColor: '#FF8000' },
+      { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'Celda 15', bgColor: '#FF8000' },
+      { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'Celda 16', bgColor: '#FF8000' },
+    ],
   });
 
   // Estado para controlar la previsualización (no parece usarse actualmente)
@@ -296,6 +290,20 @@ function FormTemplate({ data = null, gridLayout = null }) {
 
   // Función para renderizar las celdas movibles (con lógica de arrastrar y soltar simple)
   const renderMovableCells = () => {
+    const ResponsiveGridLayout = WidthProvider(Responsive);
+
+    // Define the layout for different breakpoints (example: 'lg' for large screens)
+    // You can add more breakpoints as needed
+    const layouts = {
+      lg: formData.movableCells.map(cell => ({
+        i: cell.i,
+        x: cell.x,
+        y: cell.y,
+        w: cell.w,
+        h: cell.h,
+      })),
+    };
+
     return (
       <div>
         <h2 className="switchcontainer">
@@ -312,22 +320,36 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </label>
         </h2>
         {activeAccordion === "movableCells" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
-            {formData.movableCells.map((cell, index) => (
+          <ResponsiveGridLayout
+            layouts={layouts}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+            cols={{ lg: 4, md: 4, sm: 4, xs: 4, xxs: 4 }}
+            rowHeight={100} // Adjust row height as needed
+            width={1200} // Adjust the overall width as needed
+            onLayoutChange={(currentLayout, allLayouts) => {
+              // Update the formData state when the layout changes
+              const updatedCells = formData.movableCells.map(cell => {
+                const layoutItem = currentLayout.find(item => item.i === cell.i);
+                if (layoutItem) {
+                  return { ...cell, ...layoutItem };
+                }
+                return cell;
+              });
+              setFormData(prevData => ({ ...prevData, movableCells: updatedCells }));
+            }}
+          >
+            {formData.movableCells.map((cell) => (
               <div
-                key={cell.id}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDrop(index)}
+                key={cell.i}
+                data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
                 style={{
                   border: "1px solid #ccc",
                   padding: "10px",
-                  cursor: "move",
-                  background: cell.bgColor,
+                  backgroundColor: cell.bgColor,
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "center"
+                  alignItems: "center",
+                  justifyContent: "center", // Center content vertically
                 }}
               >
                 <input
@@ -335,11 +357,14 @@ function FormTemplate({ data = null, gridLayout = null }) {
                   value={cell.content}
                   onChange={(e) => {
                     const updatedCells = [...formData.movableCells];
-                    updatedCells[index].content = e.target.value;
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      movableCells: updatedCells,
-                    }));
+                    const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
+                    if (cellIndex > -1) {
+                      updatedCells[cellIndex].content = e.target.value;
+                      setFormData((prevData) => ({
+                        ...prevData,
+                        movableCells: updatedCells,
+                      }));
+                    }
                   }}
                   style={{ marginBottom: "8px", width: "90%" }}
                 />
@@ -348,17 +373,20 @@ function FormTemplate({ data = null, gridLayout = null }) {
                   value={cell.bgColor}
                   onChange={(e) => {
                     const updatedCells = [...formData.movableCells];
-                    updatedCells[index].bgColor = e.target.value;
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      movableCells: updatedCells,
-                    }));
+                    const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
+                    if (cellIndex > -1) {
+                      updatedCells[cellIndex].bgColor = e.target.value;
+                      setFormData((prevData) => ({
+                        ...prevData,
+                        movableCells: updatedCells,
+                      }));
+                    }
                   }}
                   style={{ width: "90%" }}
                 />
               </div>
             ))}
-          </div>
+          </ResponsiveGridLayout>
         )}
       </div>
     );
@@ -399,20 +427,41 @@ function FormTemplate({ data = null, gridLayout = null }) {
           {/* Información General */}
           <h2>Información General</h2>
           <label htmlFor="title">Título de la Página:</label>
-          <input className="inputcontainer" type="text" id="title" name="title" value={formData.title} onChange={handleChange} required />
+          <input className="inputcontainer" type="text" id="title" name="title" value={formData.title} onChange={handleChange} />
           <label htmlFor="businessType">Tipo de Negocio:</label>
-          <input className="inputcontainer" type="text" id="businessType" name="businessType" value={formData.businessType} onChange={handleChange} required />
+          <input className="inputcontainer" type="text" id="businessType" name="businessType" value={formData.businessType} onChange={handleChange} />
           <label htmlFor="address">Dirección:</label>
-          <input className="inputcontainer" type="text" id="address" name="address" value={formData.address} onChange={handleChange} required />
+          <input className="inputcontainer" type="text" id="address" name="address" value={formData.address} onChange={handleChange} />
           <label htmlFor="phone">Teléfono:</label>
-          <input className="inputcontainer" type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} required />
+          <input className="inputcontainer" type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} />
           <label htmlFor="email">Correo Electrónico:</label>
-          <input className="inputcontainer" type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
+          <input className="inputcontainer" type="email" id="email" name="email" value={formData.email} onChange={handleChange} />
 
           {/* Subir Logotipo */}
           <h2>Subir Logotipo</h2>
           <input type="file" id="logo" accept="image/*" onChange={(e) => handleFileChange(e, "logo")}/>
           {formData.logo && <img src={formData.logo} alt="Logo" style={{maxWidth: 120, margin: 8}} />}
+
+          {/* Redes Sociales */}
+          <h2>Redes Sociales</h2>
+          <label htmlFor="whatsapp">WhatsApp:</label>
+          <input className="inputcontainer" type="text" id="whatsapp" name="whatsapp" placeholder="https://wa.me/" value={formData.socialLinks.whatsapp} onChange={handleSocialChange} />
+          <label htmlFor="facebook">Facebook:</label>
+          <input className="inputcontainer" type="text" id="facebook" name="facebook" placeholder="https://facebook.com/" value={formData.socialLinks.facebook} onChange={handleSocialChange} />
+          <label htmlFor="instagram">Instagram:</label>
+          <input className="inputcontainer" type="text" id="instagram" name="instagram" placeholder="https://instagram.com/" value={formData.socialLinks.instagram} onChange={handleSocialChange} />
+          <label htmlFor="twitter">X / Twitter:</label>
+          <input className="inputcontainer" type="text" id="twitter" name="twitter" placeholder="https://twitter.com/" value={formData.socialLinks.twitter} onChange={handleSocialChange} />
+          <label htmlFor="pinterest">Pinterest:</label>
+          <input className="inputcontainer" type="text" id="pinterest" name="pinterest" placeholder="https://pinterest.com/" value={formData.socialLinks.pinterest} onChange={handleSocialChange} />
+          <label htmlFor="youtube">YouTube:</label>
+          <input className="inputcontainer" type="text" id="youtube" name="youtube" placeholder="https://youtube.com/" value={formData.socialLinks.youtube} onChange={handleSocialChange} />
+          <label htmlFor="linkedin">LinkedIn:</label>
+          <input className="inputcontainer" type="text" id="linkedin" name="linkedin" placeholder="https://linkedin.com/" value={formData.socialLinks.linkedin} onChange={handleSocialChange} />
+          <label htmlFor="tiktok">TikTok:</label>
+          <input className="inputcontainer" type="text" id="tiktok" name="tiktok" placeholder="https://tiktok.com/" value={formData.socialLinks.tiktok} onChange={handleSocialChange} />
+          <label htmlFor="gmail">Gmail:</label>
+          <input className="inputcontainer" type="text" id="gmail" name="gmail" placeholder="mailto:example@gmail.com" value={formData.socialLinks.gmail || ''} onChange={handleSocialChange} />
 
           {/* Carrusel Publicidad 1 */}
           <h2>Carrusel Publicidad 1</h2>

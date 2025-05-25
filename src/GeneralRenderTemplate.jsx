@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import GridLayout from "react-grid-layout";
-import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp, FaEnvelope, FaPinterestP, FaXTwitter } from "react-icons/fa6";
 
 const defaultLayout = [
   { i: "1", x: 0, y: 0, w: 1, h: 1 },
@@ -57,14 +57,74 @@ const GeneralRenderTemplate = (props) => {
     setLayout(newLayout);
   };
 
+  // Ajusta el renderizado del contenido para que nunca cambie el tamaño de la celda
   const renderCellContent = (cell) => {
+    if (cell.id === "2") {
+      // Redes sociales en la celda 2
+      // Obtener socialLinks y email desde sessionStorage
+      let socialLinks = {};
+      let email = "";
+      try {
+        const formData = JSON.parse(window.sessionStorage.getItem("formData"));
+        if (formData && formData.socialLinks) socialLinks = formData.socialLinks;
+        if (formData && formData.email) email = formData.email;
+      } catch {}
+      // Fallback: intentar obtener de props si existe
+      if (props.formData) {
+        socialLinks = props.formData.socialLinks || socialLinks;
+        email = props.formData.email || email;
+      }
+      const hasAny = email || socialLinks.whatsapp || socialLinks.facebook || socialLinks.instagram || socialLinks.twitter || socialLinks.pinterest;
+      return (
+        <div style={{ display: "flex", gap: 16, justifyContent: "center", alignItems: "center", width: "100%" }}>
+          {email && (
+            <a href={`mailto:${email}`} target="_blank" rel="noopener noreferrer" title="Gmail">
+              <FaEnvelope size={32} color="#D14836" />
+            </a>
+          )}
+          {socialLinks.whatsapp && (
+            <a href={socialLinks.whatsapp.startsWith('http') ? socialLinks.whatsapp : `https://wa.me/${socialLinks.whatsapp.replace(/[^\d]/g, '')}`} target="_blank" rel="noopener noreferrer" title="WhatsApp">
+              <FaWhatsapp size={32} color="#25D366" />
+            </a>
+          )}
+          {socialLinks.facebook && (
+            <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
+              <FaFacebookF size={32} color="#3b5998" />
+            </a>
+          )}
+          {socialLinks.instagram && (
+            <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" title="Instagram">
+              <FaInstagram size={32} color="#E1306C" />
+            </a>
+          )}
+          {socialLinks.twitter && (
+            <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" title="X">
+              <FaXTwitter size={32} color="#000" />
+            </a>
+          )}
+          {socialLinks.pinterest && (
+            <a href={socialLinks.pinterest} target="_blank" rel="noopener noreferrer" title="Pinterest">
+              <FaPinterestP size={32} color="#E60023" />
+            </a>
+          )}
+          {!hasAny && <span style={{color:'#888'}}>Sin redes sociales</span>}
+        </div>
+      );
+    }
     switch (cell.type) {
       case "image":
         return (
           <img
             src={cell.value}
             alt="Celda Imagen"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              display: "block",
+            }}
           />
         );
       case "video":
@@ -79,31 +139,18 @@ const GeneralRenderTemplate = (props) => {
               title="Video"
               frameBorder="0"
               allowFullScreen
+              style={{ display: "block" }}
             />
           );
         }
         // Si es un enlace directo a video
         return (
-          <video controls style={{ width: "100%", height: "100%" }}>
+          <video controls style={{ width: "100%", height: "100%", display: "block" }}>
             <source src={cell.value} />
             Tu navegador no soporta el tag de video.
           </video>
         );
       case "text":
-        // Renderiza texto plano
-        return (
-          <div
-            style={{
-              fontWeight: "bold",
-              textAlign: "center",
-              fontSize: "1.1rem",
-              wordWrap: "break-word",
-              width: "100%",
-            }}
-          >
-            {cell.value}
-          </div>
-        );
       default:
         return (
           <div
@@ -113,6 +160,12 @@ const GeneralRenderTemplate = (props) => {
               fontSize: "1.1rem",
               wordWrap: "break-word",
               width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 8,
+              boxSizing: "border-box"
             }}
           >
             {cell.value}
@@ -131,6 +184,7 @@ const GeneralRenderTemplate = (props) => {
         width={1200}
         onLayoutChange={handleLayoutChange}
         draggableHandle=".react-grid-item"
+        isResizable={true}
       >
         {movableCells.map((cell) => (
           <div
@@ -138,19 +192,18 @@ const GeneralRenderTemplate = (props) => {
             className="react-grid-item"
             style={{
               backgroundColor: cell.bgColor,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
               border: "1px solid #ccc",
               borderRadius: "10px",
               overflow: "hidden",
+              padding: 0,
+              margin: 0,
+              boxSizing: "border-box"
             }}
           >
             {renderCellContent(cell)}
           </div>
         ))}
       </GridLayout>
-
       <footer style={{ marginTop: "2rem", textAlign: "center" }}>
         <hr />
         <p>© {new Date().getFullYear()} Todos los derechos reservados</p>
