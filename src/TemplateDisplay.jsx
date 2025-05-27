@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useLocation, useNavigate } from "react-router-dom";
 
 function TemplateDisplay({ datas = {} }) {
   const navigate = useNavigate();
-
   const location = useLocation();
   const data = location.state;
 
@@ -20,9 +18,9 @@ function TemplateDisplay({ datas = {} }) {
   const [currentIndex2, setCurrentIndex2] = useState(0);
   const [currentIndex3, setCurrentIndex3] = useState(0);
   const [currentIndex4, setCurrentIndex4] = useState(0);
-  const [isLoading, setIsLoading] = useState(false); // Estado para el spinner y deshabilitar botón
-  const [formData, setFormData] = useState({}); // Tu estado de datos (anteriormente data)
-  const [responsePreview, setResponsePreview] = useState(null); // Estado para la previsualización (anteriormente preview)
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [responsePreview, setResponsePreview] = useState(null);
 
   const handleIndicatorClick = (index, carouselNumber) => {
     if (carouselNumber === 1) {
@@ -74,42 +72,21 @@ function TemplateDisplay({ datas = {} }) {
     return () => clearInterval(interval); // Limpiar el intervalo cuando el componente se desmonte
   }, []);
 
-  let dinamicID = 0;
-
   const saveTemplate = async (e) => {
-    e.preventDefault(); // Evitar que el formulario recargue la página por defecto
+    e.preventDefault();
 
-    let body = JSON.stringify(data);
-
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'https://login-1k91.onrender.com/api/v1/dataform/',
-      referrerPolicy: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: body
+    // Usamos datos de prueba
+    const mockResponse = {
+      id: 1,
+      ...data
     };
-
-    const response = axios.request(config)
-      .then((response) => {
-        console.log(JSON.stringify(response.data));
-        setPreview(response.data);
-        dinamicID = response.data.id;
-        console.log(dinamicID);
-        // Guardar el ID en el almacenamiento local
-        window.localStorage.setItem("id", dinamicID);
-        // Redirigir a la nueva URL
-        window.location.href = '/admin';
-      })
-      .catch((error) => {
-        console.log(error);
-        alert("Error save success", error);
-      });
+    setPreview(mockResponse);
+    const dinamicID = mockResponse.id;
+    console.log("Mock ID:", dinamicID);
+    window.localStorage.setItem("id", dinamicID);
+    window.location.href = '/admin';
   };
 
-  
   return (
     <div
       style={{
@@ -166,15 +143,34 @@ function TemplateDisplay({ datas = {} }) {
       >
         {/* Logo */}
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          <img
-            src={data.logo || "default-logo.jpg"}
-            alt="Logo"
-            style={{ height: "200px", width: "300px",
+          {data.logo ? (
+            <img
+              src={data.logo}
+              alt="Logo"
+              style={{ 
+                height: "200px", 
+                width: "300px",
+                minWidth: "300px",
+                maxWidth: "300px",
+                objectFit: "contain"
+              }}
+            />
+          ) : (
+            <div style={{ 
+              height: "200px", 
+              width: "300px",
               minWidth: "300px",
               maxWidth: "300px",
-          }}
-            
-          />
+              backgroundColor: "#f0f0f0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "8px",
+              border: "2px dashed #ccc"
+            }}>
+              <span style={{ color: "#666" }}>Sin logo</span>
+            </div>
+          )}
         </div>
 
         {/* Redes Sociales y Carruseles */}

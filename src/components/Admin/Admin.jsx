@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./Admin.module.css";
-// import axios from "axios";
+import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -53,9 +53,9 @@ const Admin = ({ data = [] }) => {
     };
 
     try {
-      // const response = await axios.request(config);
-      // console.log(JSON.stringify(response.data));
-      setResponsePreview("response.data");
+      const response = await axios.request(config);
+      console.log(JSON.stringify(response.data));
+      setResponsePreview(response.data);
       toast.success("Eliminado con éxito");
       setTimeout(() => window.location.reload(), 1500);
     } catch (error) {

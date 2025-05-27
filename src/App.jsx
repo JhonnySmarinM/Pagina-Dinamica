@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-// import axios from "axios";
 import GridLayout from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -30,33 +29,67 @@ const gridCellStyle = {
 };
 
 function App() {
-  const [formData, setFormData] = useState({
-    title: "",
-    businessType: "",
-    address: "",
-    phone: "",
-    email: "",
+  // Mock data for testing - using a single object instead of an array
+  const [dataProps] = useState({
+    id: 1,
+    title: "Mi Empresa",
+    businessType: "Restaurante",
+    address: "Calle Principal 123",
+    phone: "123-456-7890",
+    email: "contacto@miempresa.com",
+    emailClient: "cliente@miempresa.com",
+    updated_at: new Date().toISOString(),
+    isPublished: false,
     socialLinks: {
-      whatsapp: "",
-      facebook: "",
-      instagram: "",
-      youtube: "",
-      linkedin: "",
-      tiktok: "",
-      pinterest: "",
-      twitter: "",
+      whatsapp: "https://wa.me/1234567890",
+      facebook: "https://facebook.com/miempresa",
+      instagram: "https://instagram.com/miempresa",
+      youtube: "https://youtube.com/miempresa",
+      linkedin: "https://linkedin.com/company/miempresa",
+      tiktok: "https://tiktok.com/@miempresa",
+      pinterest: "https://pinterest.com/miempresa",
+      twitter: "https://twitter.com/miempresa"
     },
     logo: "",
     backgroundImage: "",
-    carouselImages: [],
-    carouselImages2: [],
-    services: [{ name: "", description: "", carouselImagesServicio: "" }],
-    centralCarousel: [{ image: "", description: "" }],
-    movableCells: [],
+    carouselImages: [
+      "https://via.placeholder.com/300/FF0000/FFFFFF?text=Image+1",
+      "https://via.placeholder.com/300/00FF00/FFFFFF?text=Image+2",
+      "https://via.placeholder.com/300/0000FF/FFFFFF?text=Image+3",
+    ],
+    carouselImages2: [
+      "https://via.placeholder.com/300/FF00FF/FFFFFF?text=Image+4",
+      "https://via.placeholder.com/300/FFFF00/FFFFFF?text=Image+5",
+      "https://via.placeholder.com/300/00FFFF/FFFFFF?text=Image+6",
+    ],
+    services: [
+      { name: "Servicio 1", description: "Descripción del servicio 1", carouselImagesServicio: "https://via.placeholder.com/300/FF0000/FFFFFF?text=Service+1" },
+      { name: "Servicio 2", description: "Descripción del servicio 2", carouselImagesServicio: "https://via.placeholder.com/300/00FF00/FFFFFF?text=Service+2" }
+    ],
+    centralCarousel: [
+      { image: "https://via.placeholder.com/300/0000FF/FFFFFF?text=Central+1", description: "Descripción 1" },
+      { image: "https://via.placeholder.com/300/FF00FF/FFFFFF?text=Central+2", description: "Descripción 2" }
+    ],
+    movableCells: [
+      { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'LOGO', bgColor: '#D3D3D3' },
+      { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'REDES SOCIALES', bgColor: '#FF2D2D' },
+      { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 1', bgColor: '#A89C5D' },
+      { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 2', bgColor: '#FFC300' },
+      { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'VIDEO CORPORATIVO', bgColor: '#00BFFF' },
+      { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'EMPRESA', bgColor: '#295A6D' },
+      { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'PRODUCTOS Y SERVICIOS', bgColor: '#2B7A78' },
+      { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'RESERVAS', bgColor: '#FF6F00' },
+      { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'CALENDARIO', bgColor: '#FFFFFF' },
+      { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 1', bgColor: '#BDB89B' },
+      { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 2', bgColor: '#BDB89B' },
+      { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 3', bgColor: '#BDB89B' },
+      { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'SLIDE 1', bgColor: '#FF8000' },
+      { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'SLIDE 2', bgColor: '#FF8000' },
+      { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'SLIDE 3', bgColor: '#FF8000' },
+      { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'SLIDE 4', bgColor: '#FF8000' }
+    ]
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [dataProps, setDataProps] = useState("dataProps");
   const [logo, setLogo] = useState(null);
 
   const handleImageUpload = (event) => {
@@ -109,45 +142,6 @@ function App() {
     autoplaySpeed: 3000,
   };
 
-  useEffect(() => {
-    // axios
-    //   .get("https://login-1k91.onrender.com/api/v1/dataform/")
-    //   .then((res) => {
-    //     console.log("Fetched data:", res.data);
-    //     setDataProps(res.data);
-    //     setIsLoading(false);
-    //   })
-    //   .catch((err) => {
-    //     console.error("Error fetching data:", err);
-    //     setIsLoading(false);
-    //   });
-  }, []);
-
-  const renderMovableCells = () => (
-    <GridLayout className="layout" layout={layout} cols={8} rowHeight={180}>
-      {formData.movableCells.length > 0 ? (
-        formData.movableCells.map((cell, index) => (
-          <div key={cell.id} className="box" style={gridCellStyle}>
-            <input
-              type="text"
-              value={cell.content}
-              onChange={(e) => {
-                const updatedCells = [...formData.movableCells];
-                updatedCells[index].content = e.target.value;
-                setFormData((prevData) => ({
-                  ...prevData,
-                  movableCells: updatedCells,
-                }));
-              }}
-            />
-          </div>
-        ))
-      ) : (
-        <div key="no-cells">No hay celdas movibles disponibles.</div>
-      )}
-    </GridLayout>
-  );
-
   const renderGridLayout = () => (
     <GridLayout className="layout" layout={layout} cols={8} rowHeight={180}>
       <div key="1" className="box" style={gridCellStyle}>
@@ -169,7 +163,7 @@ function App() {
       <div key="3" className="box" style={gridCellStyle}>
         <Slider {...sliderSettings}>
           {carouselImages.map((src, index) => (
-            <div key={index}>
+            <div key={`carousel-${index}`}>
               <img src={src} alt={`Slide ${index + 1}`} style={{ maxWidth: "100%", maxHeight: "100%" }} />
             </div>
           ))}
@@ -194,38 +188,26 @@ function App() {
   return (
     <Router>
       <div>
-        {isLoading ? (
-          <div className="spinner-container">
-            <div className="spinner">
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <Routes>
-              <Route path="/" element={<FormTemplate />} />
-              <Route
-                path="/webtemplateCreate"
-                element={
-                  <GeneralRenderTemplate
-                    layout={layout}
-                    movableCells={JSON.parse(window.sessionStorage.getItem('movableCells')) || []}
-                  />
-                }
+        <Routes>
+          <Route path="/" element={<FormTemplate data={[dataProps]} />} />
+          <Route
+            path="/webtemplateCreate"
+            element={
+              <GeneralRenderTemplate
+                layout={layout}
+                movableCells={JSON.parse(window.sessionStorage.getItem('movableCells')) || []}
+                formData={JSON.parse(window.sessionStorage.getItem('formData')) || {}}
               />
-              <Route path="/admin" element={<Admin data={dataProps} />} />
-              <Route
-                path="/mypage/:id"
-                element={<GeneralRenderTemplate datas={dataProps} gridLayout={renderGridLayout()} />}
-              />
-              <Route path="/:id" element={<FormTemplate data={dataProps} />} />
-              <Route path="/auth" element={<Auth />} />
-            </Routes>
-          </>
-        )}
+            }
+          />
+          <Route
+            path="/mypage/:id"
+            element={<GeneralRenderTemplate datas={[dataProps]} gridLayout={renderGridLayout()} />}
+          />
+          <Route path="/:id" element={<FormTemplate data={[dataProps]} />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/admin" element={<Admin data={[dataProps]} />} />
+        </Routes>
       </div>
     </Router>
   );

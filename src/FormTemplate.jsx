@@ -29,17 +29,19 @@ function FormTemplate({ data = null, gridLayout = null }) {
   const id = url.split("/")[3];
 
   // Encontrar los datos correspondientes al ID si la prop data existe
-  const selectedData = data ? data.find(item => item.id === parseInt(id)) : null;
+  const selectedData = data && Array.isArray(data) && data.length > 0 
+    ? data.find(item => item.id === parseInt(id)) || data[0] 
+    : null;
   console.log("selectedData---------|||------------", selectedData); // Log de los datos seleccionados
 
   // Estado local para almacenar los datos del formulario
   const [formData, setFormData] = useState({
-    title: "", // Título de la página
-    businessType: "", // Tipo de negocio
-    address: "", // Dirección
-    phone: "", // Teléfono
-    email: "", // Correo electrónico
-    socialLinks: { // Objeto para enlaces a redes sociales
+    title: selectedData?.title || "Mi Empresa",
+    businessType: selectedData?.businessType || "Tipo de Negocio",
+    address: selectedData?.address || "Dirección",
+    phone: selectedData?.phone || "Teléfono",
+    email: selectedData?.email || "correo@ejemplo.com",
+    socialLinks: selectedData?.socialLinks || {
       whatsapp: "",
       facebook: "",
       instagram: "",
@@ -49,32 +51,31 @@ function FormTemplate({ data = null, gridLayout = null }) {
       pinterest: "",
       twitter: "",
     },
-    logo: "", // URL/Base64 del logo
-    backgroundImage: "", // URL/Base64 de la imagen de fondo
-    carouselImages: [], // Array para imágenes del carrusel 1
-    carouselImages2: [], // Array para imágenes del carrusel 2
-    services: [{ name: "", description: "", carouselImagesServicio: "" }], // Array de servicios
-    centralCarousel: [{ image: "", description: "" }], // Array para carrusel central
-    emailClient: "", // Correo electrónico del cliente (parece no estar en el estado inicial de App.jsx)
-    // Inicializar movableCells con datos de diseño para react-grid-layout
-    movableCells: [
-      { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'Celda 1', bgColor: '#D3D3D3' },
-      { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'Celda 2', bgColor: '#FF2D2D' },
-      { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'Celda 3', bgColor: '#A89C5D' },
-      { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'Celda 4', bgColor: '#FFC300' },
-      { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'Celda 5', bgColor: '#00BFFF' },
-      { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'Celda 6', bgColor: '#295A6D' },
-      { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'Celda 7', bgColor: '#2B7A78' },
-      { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'Celda 8', bgColor: '#FF6F00' },
-      { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'Celda 9', bgColor: '#FFFFFF' },
-      { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'Celda 10', bgColor: '#BDB89B' },
-      { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'Celda 11', bgColor: '#BDB89B' },
-      { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'Celda 12', bgColor: '#BDB89B' },
-      { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'Celda 13', bgColor: '#FF8000' },
-      { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'Celda 14', bgColor: '#FF8000' },
-      { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'Celda 15', bgColor: '#FF8000' },
-      { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'Celda 16', bgColor: '#FF8000' },
-    ],
+    logo: selectedData?.logo || "",
+    backgroundImage: selectedData?.backgroundImage || "",
+    carouselImages: selectedData?.carouselImages || [],
+    carouselImages2: selectedData?.carouselImages2 || [],
+    services: selectedData?.services || [{ name: "Servicio 1", description: "Descripción del servicio 1", carouselImagesServicio: "" }],
+    centralCarousel: selectedData?.centralCarousel || [{ image: "", description: "Descripción 1" }],
+    emailClient: selectedData?.emailClient || "",
+    movableCells: selectedData?.movableCells || [
+      { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'LOGO', bgColor: '#D3D3D3' },
+      { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'REDES SOCIALES', bgColor: '#FF2D2D' },
+      { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 1', bgColor: '#A89C5D' },
+      { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 2', bgColor: '#FFC300' },
+      { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'VIDEO CORPORATIVO', bgColor: '#00BFFF' },
+      { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'EMPRESA', bgColor: '#295A6D' },
+      { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'PRODUCTOS Y SERVICIOS', bgColor: '#2B7A78' },
+      { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'RESERVAS', bgColor: '#FF6F00' },
+      { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'CALENDARIO', bgColor: '#FFFFFF' },
+      { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 1', bgColor: '#BDB89B' },
+      { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 2', bgColor: '#BDB89B' },
+      { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 3', bgColor: '#BDB89B' },
+      { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'SLIDE 1', bgColor: '#FF8000' },
+      { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'SLIDE 2', bgColor: '#FF8000' },
+      { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'SLIDE 3', bgColor: '#FF8000' },
+      { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'SLIDE 4', bgColor: '#FF8000' }
+    ]
   });
 
   // Estado para controlar la previsualización (no parece usarse actualmente)
@@ -412,12 +413,45 @@ function FormTemplate({ data = null, gridLayout = null }) {
     { id: "16", type: "text", value: (Array.isArray(formData.services) && formData.services[4] && formData.services[4].name) || "SLIDE 4", bgColor: "#B5EAD7" },
   ];
 
+  // Cuando el usuario sube un logo, actualiza la celda 1 del grid en tiempo real
+  useEffect(() => {
+    // Si hay un logo en selectedData y no hay uno en formData, úsalo
+    if ((!formData.logo || formData.logo === "") && selectedData && selectedData.logo && selectedData.logo !== "") {
+      setFormData((prevData) => ({
+        ...prevData,
+        movableCells: prevData.movableCells.map(cell =>
+          (cell.i === '1' || cell.id === '1')
+            ? { ...cell, type: 'text', value: 'LOGO' }
+            : cell
+        )
+      }));
+    } else if (formData.logo && formData.logo !== "") {
+      // Si el usuario sube un logo, úsalo
+      setFormData((prevData) => ({
+        ...prevData,
+        movableCells: prevData.movableCells.map(cell =>
+          (cell.i === '1' || cell.id === '1')
+            ? { ...cell, type: 'image', value: formData.logo }
+            : cell
+        )
+      }));
+    } else {
+      // Si no hay logo, muestra el texto 'LOGO'
+      setFormData((prevData) => ({
+        ...prevData,
+        movableCells: prevData.movableCells.map(cell =>
+          (cell.i === '1' || cell.id === '1')
+            ? { ...cell, type: 'text', value: 'LOGO' }
+            : cell
+        )
+      }));
+    }
+  }, [formData.logo, selectedData && selectedData.logo]);
+
   // Renderizado principal del componente FormTemplate
   return (
     // Contenedor principal del formulario
     <div className="form-container">
-      {/* Renderizar el gridLayout si se pasa como prop (actualmente no se usa aquí según el último cambio en App.jsx) */}
-      {gridLayout}
       {/* Contenido principal del formulario */}
       <div className="form-content">
         {/* Título del formulario */}
@@ -439,8 +473,34 @@ function FormTemplate({ data = null, gridLayout = null }) {
 
           {/* Subir Logotipo */}
           <h2>Subir Logotipo</h2>
-          <input type="file" id="logo" accept="image/*" onChange={(e) => handleFileChange(e, "logo")}/>
-          {formData.logo && <img src={formData.logo} alt="Logo" style={{maxWidth: 120, margin: 8}} />}
+          <div style={{ marginBottom: "20px" }}>
+            <input 
+              type="file" 
+              id="logo" 
+              accept="image/*" 
+              onChange={(e) => handleFileChange(e, "logo")}
+              style={{ marginBottom: "10px" }}
+            />
+            {formData.logo && (
+              <div style={{ 
+                marginTop: "10px",
+                padding: "10px",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                backgroundColor: "#fff"
+              }}>
+                <img 
+                  src={formData.logo} 
+                  alt="Logo Preview" 
+                  style={{
+                    maxWidth: "200px",
+                    maxHeight: "200px",
+                    objectFit: "contain"
+                  }} 
+                />
+              </div>
+            )}
+          </div>
 
           {/* Redes Sociales */}
           <h2>Redes Sociales</h2>
