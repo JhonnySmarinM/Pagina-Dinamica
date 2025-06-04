@@ -1,5 +1,5 @@
 // Importar módulos y hooks necesarios de React
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 // Importar hook para navegación programática
 import { useNavigate } from "react-router-dom";
 // Importar componentes de react-grid-layout
@@ -14,11 +14,36 @@ import "./App.css";
 function FormTemplate({ data = null, gridLayout = null }) {
   // Hook para la navegación programática
   const navigate = useNavigate();
+  const ResponsiveGridLayout = WidthProvider(Responsive);
 
   // Función para manejar la generación de la página y navegar a la vista previa
   const handleGeneratePage = () => {
-    // Guarda las celdas en sessionStorage para que estén disponibles en la siguiente ruta
-    window.sessionStorage.setItem('movableCells', JSON.stringify(formData.movableCells)); // Usa el estado actualizado con layout
+    // Actualizar las celdas movibles con los datos actuales
+    const updatedMovableCells = formData.movableCells.map(cell => {
+      if (cell.i === '1' && formData.logo) {
+        return { ...cell, type: 'image', value: formData.logo, content: 'LOGO' };
+      }
+      // Actualizar otras celdas según su contenido
+      if (cell.i === '3' && formData.carouselImages && formData.carouselImages.length > 0) {
+        return { ...cell, type: 'image', value: formData.carouselImages[0], content: cell.content };
+      }
+      if (cell.i === '4' && formData.carouselImages2 && formData.carouselImages2.length > 0) {
+        return { ...cell, type: 'image', value: formData.carouselImages2[0], content: cell.content };
+      }
+      if (cell.i === '10' && formData.fotoTexto1) {
+        return { ...cell, type: 'image', value: formData.fotoTexto1, content: cell.content };
+      }
+      if (cell.i === '11' && formData.fotoTexto2) {
+        return { ...cell, type: 'image', value: formData.fotoTexto2, content: cell.content };
+      }
+      if (cell.i === '12' && formData.fotoTexto3) {
+        return { ...cell, type: 'image', value: formData.fotoTexto3, content: cell.content };
+      }
+      return cell;
+    });
+
+    // Guardar los datos actualizados en sessionStorage
+    window.sessionStorage.setItem('movableCells', JSON.stringify(updatedMovableCells));
     window.sessionStorage.setItem('formData', JSON.stringify(formData));
     navigate("/webtemplateCreate");
   };
@@ -32,7 +57,7 @@ function FormTemplate({ data = null, gridLayout = null }) {
   const selectedData = data && Array.isArray(data) && data.length > 0 
     ? data.find(item => item.id === parseInt(id)) || data[0] 
     : null;
-  console.log("selectedData---------|||------------", selectedData); // Log de los datos seleccionados
+  // console.log("selectedData---------|||------------", selectedData); // Log de los datos seleccionados
 
   // Estado local para almacenar los datos del formulario
   const [formData, setFormData] = useState({
@@ -291,10 +316,7 @@ function FormTemplate({ data = null, gridLayout = null }) {
 
   // Función para renderizar las celdas movibles (con lógica de arrastrar y soltar simple)
   const renderMovableCells = () => {
-    const ResponsiveGridLayout = WidthProvider(Responsive);
-
-    // Define the layout for different breakpoints (example: 'lg' for large screens)
-    // You can add more breakpoints as needed
+    // Define the layout for different breakpoints
     const layouts = {
       lg: formData.movableCells.map(cell => ({
         i: cell.i,
@@ -325,10 +347,9 @@ function FormTemplate({ data = null, gridLayout = null }) {
             layouts={layouts}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 4, md: 4, sm: 4, xs: 4, xxs: 4 }}
-            rowHeight={100} // Adjust row height as needed
-            width={1200} // Adjust the overall width as needed
+            rowHeight={100}
+            width={1200}
             onLayoutChange={(currentLayout, allLayouts) => {
-              // Update the formData state when the layout changes
               const updatedCells = formData.movableCells.map(cell => {
                 const layoutItem = currentLayout.find(item => item.i === cell.i);
                 if (layoutItem) {
@@ -350,7 +371,7 @@ function FormTemplate({ data = null, gridLayout = null }) {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "center", // Center content vertically
+                  justifyContent: "center",
                 }}
               >
                 <input
@@ -448,6 +469,37 @@ function FormTemplate({ data = null, gridLayout = null }) {
     }
   }, [formData.logo, selectedData && selectedData.logo]);
 
+  // Estado para mostrar validación visual de logo subido
+  const [logoUploaded, setLogoUploaded] = useState(false);
+  // Resetear mensaje si se borra el logo
+  useEffect(() => {
+    if (!formData.logo) setLogoUploaded(false);
+  }, [formData.logo]);
+
+  // Memoize the layout for the preview section
+  const previewLayout = useMemo(() => ({
+    lg: formData.movableCells.map(cell => ({
+      i: cell.i,
+      x: cell.x,
+      y: cell.y,
+      w: cell.w,
+      h: cell.h,
+    }))
+  }), [formData.movableCells]);
+
+  const handlePreviewLayoutChange = (newLayout) => {
+    const updatedCells = formData.movableCells.map(cell => {
+      const layoutItem = newLayout.find(item => item.i === cell.i);
+      if (layoutItem) {
+        return { ...cell, ...layoutItem };
+      }
+      return cell;
+    });
+    setFormData(prevData => ({ ...prevData, movableCells: updatedCells }));
+    // Save updated cells to sessionStorage
+    window.sessionStorage.setItem('movableCells', JSON.stringify(updatedCells));
+  };
+
   // Renderizado principal del componente FormTemplate
   return (
     // Contenedor principal del formulario
@@ -478,26 +530,42 @@ function FormTemplate({ data = null, gridLayout = null }) {
               type="file" 
               id="logo" 
               accept="image/*" 
-              onChange={(e) => handleFileChange(e, "logo")}
+              onChange={(e) => {
+                handleFileChange(e, "logo");
+                setLogoUploaded(true);
+              }}
               style={{ marginBottom: "10px" }}
             />
-            {formData.logo && (
+            {formData.logo && typeof formData.logo === 'string' && formData.logo.trim() !== '' && (
               <div style={{ 
                 marginTop: "10px",
                 padding: "10px",
                 border: "1px solid #ddd",
                 borderRadius: "8px",
-                backgroundColor: "#fff"
+                backgroundColor: "#fff",
+                width: "200px",
+                height: "200px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}>
                 <img 
                   src={formData.logo} 
                   alt="Logo Preview" 
                   style={{
-                    maxWidth: "200px",
-                    maxHeight: "200px",
-                    objectFit: "contain"
-                  }} 
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    display: "block",
+                    background: "#fff"
+                  }}
+                  onError={e => { e.target.style.display = 'none'; }}
                 />
+              </div>
+            )}
+            {logoUploaded && (
+              <div style={{ color: 'green', marginTop: 8, fontWeight: 'bold' }}>
+                ¡Logo subido correctamente!
               </div>
             )}
           </div>
@@ -527,14 +595,26 @@ function FormTemplate({ data = null, gridLayout = null }) {
           <h2>Carrusel Publicidad 1</h2>
           <input type="file" id="carouselImages1" accept="image/*" multiple onChange={handleCarouselImagesChange} />
           <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-            {formData.carouselImages.map((img, i) => <img key={i} src={img} alt="pub1" style={{maxWidth: 80}} />)}
+            {formData.carouselImages.map((img, i) => (
+              !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={img} alt="pub1" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                </div>
+              )
+            ))}
           </div>
 
           {/* Carrusel Publicidad 2 */}
           <h2>Carrusel Publicidad 2</h2>
           <input type="file" id="carouselImages2" accept="image/*" multiple onChange={handleCarouselImagesChange2} />
           <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-            {formData.carouselImages2.map((img, i) => <img key={i} src={img} alt="pub2" style={{maxWidth: 80}} />)}
+            {formData.carouselImages2.map((img, i) => (
+              !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={img} alt="pub2" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                </div>
+              )
+            ))}
           </div>
 
           {/* Subir Video Empresarial */}
@@ -551,7 +631,11 @@ function FormTemplate({ data = null, gridLayout = null }) {
               <textarea name="description" value={service.description} onChange={e => handleServiceChange(index, e)} />
               <label>Imagen:</label>
               <input type="file" accept="image/*" onChange={e => handleServiceImageChange(index, e)} />
-              {service.carouselImagesServicio && <img src={service.carouselImagesServicio} alt="servicio" style={{maxWidth: 80}} />}
+              {service.carouselImagesServicio && typeof service.carouselImagesServicio === 'string' && service.carouselImagesServicio.startsWith('data:image') && (
+                <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
+                  <img src={service.carouselImagesServicio} alt="servicio" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                </div>
+              )}
               <button type="button" onClick={() => removeService(index)}>Eliminar</button>
             </div>
           ))}
@@ -576,19 +660,31 @@ function FormTemplate({ data = null, gridLayout = null }) {
           <h2>Subir Foto/Texto 1</h2>
           <input type="file" name="fotoTexto1" accept="image/*" onChange={e => handleFileChange(e, "fotoTexto1")}/>
           <input type="text" name="texto1" placeholder="Texto 1" value={formData.texto1 || ''} onChange={handleChange} />
-          {formData.fotoTexto1 && <img src={formData.fotoTexto1} alt="foto1" style={{maxWidth: 80}} />}
+          {formData.fotoTexto1 && typeof formData.fotoTexto1 === 'string' && formData.fotoTexto1.startsWith('data:image') && (
+            <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
+              <img src={formData.fotoTexto1} alt="foto1" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+            </div>
+          )}
 
           {/* Subir Foto/Texto 2 */}
           <h2>Subir Foto/Texto 2</h2>
           <input type="file" name="fotoTexto2" accept="image/*" onChange={e => handleFileChange(e, "fotoTexto2")}/>
           <input type="text" name="texto2" placeholder="Texto 2" value={formData.texto2 || ''} onChange={handleChange} />
-          {formData.fotoTexto2 && <img src={formData.fotoTexto2} alt="foto2" style={{maxWidth: 80}} />}
+          {formData.fotoTexto2 && typeof formData.fotoTexto2 === 'string' && formData.fotoTexto2.startsWith('data:image') && (
+            <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
+              <img src={formData.fotoTexto2} alt="foto2" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+            </div>
+          )}
 
           {/* Subir Foto/Texto 3 */}
           <h2>Subir Foto/Texto 3</h2>
           <input type="file" name="fotoTexto3" accept="image/*" onChange={e => handleFileChange(e, "fotoTexto3")}/>
           <input type="text" name="texto3" placeholder="Texto 3" value={formData.texto3 || ''} onChange={handleChange} />
-          {formData.fotoTexto3 && <img src={formData.fotoTexto3} alt="foto3" style={{maxWidth: 80}} />}
+          {formData.fotoTexto3 && typeof formData.fotoTexto3 === 'string' && formData.fotoTexto3.startsWith('data:image') && (
+            <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
+              <img src={formData.fotoTexto3} alt="foto3" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+            </div>
+          )}
 
           <div style={{ marginTop: "20px", textAlign: "center" }}>
             <button type="button" onClick={handleGeneratePage}>
@@ -596,6 +692,55 @@ function FormTemplate({ data = null, gridLayout = null }) {
             </button>
           </div>
         </form>
+      </div>
+      {/* Vista previa en tiempo real */}
+      <div className="preview-container" style={{ marginTop: 40 }}>
+        <h2>Vista Previa</h2>
+        <div style={{ width: '100%', minHeight: 600, border: '1px solid #ccc', borderRadius: 8, background: '#fff', padding: '20px' }}>
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={previewLayout}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+            cols={{ lg: 4, md: 4, sm: 4, xs: 4, xxs: 4 }}
+            rowHeight={150}
+            width={1200}
+            onLayoutChange={handlePreviewLayoutChange}
+            draggableHandle=".react-grid-item"
+            isDraggable={true}
+            isResizable={true}
+          >
+            {formData.movableCells.map((cell) => (
+              <div
+                key={cell.i}
+                className="react-grid-item"
+                style={{
+                  backgroundColor: cell.bgColor,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1px solid #ccc",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                }}
+              >
+                {cell.type === 'image' && cell.value ? (
+                  <div style={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff"}}>
+                    <img
+                      src={cell.value}
+                      alt={cell.content}
+                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", maxWidth: "100%", maxHeight: "100%" }}
+                      onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ fontWeight: "bold", textAlign: "center", fontSize: "1.1rem", wordWrap: "break-word" }}>
+                    {cell.content}
+                  </div>
+                )}
+              </div>
+            ))}
+          </ResponsiveGridLayout>
+        </div>
       </div>
     </div>
   );
