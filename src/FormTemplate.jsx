@@ -20,28 +20,73 @@ function FormTemplate({ data = null, gridLayout = null }) {
   const handleGeneratePage = () => {
     // Actualizar las celdas movibles con los datos actuales
     const updatedMovableCells = formData.movableCells.map(cell => {
-      if (cell.i === '1' && formData.logo) {
-        return { ...cell, type: 'image', value: formData.logo, content: 'LOGO' };
+      // Handle LOGO cell (cell 1)
+      if (cell.i === '1') {
+        if (formData.logo && typeof formData.logo === 'string' && formData.logo.startsWith('data:image')) {
+          return { ...cell, type: 'image', value: formData.logo, content: 'LOGO' };
+        } else {
+          return { ...cell, type: 'text', value: null, content: 'LOGO' };
+        }
       }
-      // Actualizar otras celdas según su contenido
-      if (cell.i === '3' && formData.carouselImages && formData.carouselImages.length > 0) {
-        return { ...cell, type: 'image', value: formData.carouselImages[0], content: cell.content };
+      // Handle VIDEO CORPORATIVO cell (cell 5)
+      if (cell.i === '5') {
+        if (formData.videoUrl || formData.videoFile) {
+          return { 
+            ...cell, 
+            type: 'video', 
+            value: formData.videoUrl || formData.videoFile, 
+            content: 'VIDEO CORPORATIVO' 
+          };
+        } else {
+          return { ...cell, type: 'text', value: null, content: 'VIDEO CORPORATIVO' };
+        }
       }
-      if (cell.i === '4' && formData.carouselImages2 && formData.carouselImages2.length > 0) {
-        return { ...cell, type: 'image', value: formData.carouselImages2[0], content: cell.content };
+      // Handle PUBLICIDAD 1 cell (cell 3)
+      if (cell.i === '3') {
+         if (formData.carouselImages && Array.isArray(formData.carouselImages) && formData.carouselImages.length > 0 && typeof formData.carouselImages[0] === 'string' && formData.carouselImages[0].startsWith('data:image')) {
+           return { ...cell, type: 'image', value: formData.carouselImages[0], content: cell.content };
+         } else {
+            return { ...cell, type: 'text', value: null, content: cell.content || 'PUBLICIDAD 1' };
+         }
       }
-      if (cell.i === '10' && formData.fotoTexto1) {
-        return { ...cell, type: 'image', value: formData.fotoTexto1, content: cell.content };
+      // Handle PUBLICIDAD 2 cell (cell 4)
+      if (cell.i === '4') {
+         if (formData.carouselImages2 && Array.isArray(formData.carouselImages2) && formData.carouselImages2.length > 0 && typeof formData.carouselImages2[0] === 'string' && formData.carouselImages2[0].startsWith('data:image')) {
+           return { ...cell, type: 'image', value: formData.carouselImages2[0], content: cell.content };
+         } else {
+            return { ...cell, type: 'text', value: null, content: cell.content || 'PUBLICIDAD 2' };
+         }
       }
-      if (cell.i === '11' && formData.fotoTexto2) {
-        return { ...cell, type: 'image', value: formData.fotoTexto2, content: cell.content };
+      // Handle FOTO/TEXTO 1 cell (cell 10)
+      if (cell.i === '10') {
+         if (formData.fotoTexto1 && typeof formData.fotoTexto1 === 'string' && formData.fotoTexto1.startsWith('data:image')) {
+           return { ...cell, type: 'image', value: formData.fotoTexto1, content: cell.content };
+         } else {
+            return { ...cell, type: 'text', value: null, content: cell.content || 'FOTO/TEXTO 1' };
+         }
       }
-      if (cell.i === '12' && formData.fotoTexto3) {
-        return { ...cell, type: 'image', value: formData.fotoTexto3, content: cell.content };
+      // Handle FOTO/TEXTO 2 cell (cell 11)
+      if (cell.i === '11') {
+         if (formData.fotoTexto2 && typeof formData.fotoTexto2 === 'string' && formData.fotoTexto2.startsWith('data:image')) {
+           return { ...cell, type: 'image', value: formData.fotoTexto2, content: cell.content };
+         } else {
+            return { ...cell, type: 'text', value: null, content: cell.content || 'FOTO/TEXTO 2' };
+         }
       }
+      // Handle FOTO/TEXTO 3 cell (cell 12)
+      if (cell.i === '12') {
+         if (formData.fotoTexto3 && typeof formData.fotoTexto3 === 'string' && formData.fotoTexto3.startsWith('data:image')) {
+           return { ...cell, type: 'image', value: formData.fotoTexto3, content: cell.content };
+         } else {
+            return { ...cell, type: 'text', value: null, content: cell.content || 'FOTO/TEXTO 3' };
+         }
+      }
+      
+      // For other cells, return as is
       return cell;
     });
 
+    console.log('Guardando movableCells en handleGeneratePage:', updatedMovableCells); // Debug log
     // Guardar los datos actualizados en sessionStorage
     window.sessionStorage.setItem('movableCells', JSON.stringify(updatedMovableCells));
     window.sessionStorage.setItem('formData', JSON.stringify(formData));
@@ -80,27 +125,32 @@ function FormTemplate({ data = null, gridLayout = null }) {
     backgroundImage: selectedData?.backgroundImage || "",
     carouselImages: selectedData?.carouselImages || [],
     carouselImages2: selectedData?.carouselImages2 || [],
+    videoUrl: selectedData?.videoUrl || "",
+    videoFile: selectedData?.videoFile || "",
     services: selectedData?.services || [{ name: "Servicio 1", description: "Descripción del servicio 1", carouselImagesServicio: "" }],
     centralCarousel: selectedData?.centralCarousel || [{ image: "", description: "Descripción 1" }],
     emailClient: selectedData?.emailClient || "",
-    movableCells: selectedData?.movableCells || [
-      { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'LOGO', bgColor: '#D3D3D3' },
-      { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'REDES SOCIALES', bgColor: '#FF2D2D' },
-      { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 1', bgColor: '#A89C5D' },
-      { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 2', bgColor: '#FFC300' },
-      { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'VIDEO CORPORATIVO', bgColor: '#00BFFF' },
-      { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'EMPRESA', bgColor: '#295A6D' },
-      { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'PRODUCTOS Y SERVICIOS', bgColor: '#2B7A78' },
-      { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'RESERVAS', bgColor: '#FF6F00' },
-      { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'CALENDARIO', bgColor: '#FFFFFF' },
-      { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 1', bgColor: '#BDB89B' },
-      { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 2', bgColor: '#BDB89B' },
-      { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 3', bgColor: '#BDB89B' },
-      { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'SLIDE 1', bgColor: '#FF8000' },
-      { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'SLIDE 2', bgColor: '#FF8000' },
-      { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'SLIDE 3', bgColor: '#FF8000' },
-      { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'SLIDE 4', bgColor: '#FF8000' }
-    ]
+    // Initialize movableCells with default structure, then potentially overwrite with loaded data
+    movableCells: selectedData?.movableCells && Array.isArray(selectedData.movableCells) && selectedData.movableCells.length === 16 
+      ? selectedData.movableCells 
+      : [
+          { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'LOGO', bgColor: '#D3D3D3', type: 'text' },
+          { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'REDES SOCIALES', bgColor: '#FFE4E1', type: 'social' },
+          { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 1', bgColor: '#A89C5D', type: 'text' },
+          { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 2', bgColor: '#FFC300', type: 'text' },
+          { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'VIDEO CORPORATIVO', bgColor: '#00BFFF', type: 'text' },
+          { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'EMPRESA', bgColor: '#295A6D', type: 'text' },
+          { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'PRODUCTOS Y SERVICIOS', bgColor: '#2B7A78', type: 'text' },
+          { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'RESERVAS', bgColor: '#FF6F00', type: 'text' },
+          { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'CALENDARIO', bgColor: '#FFFFFF', type: 'text' },
+          { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 1', bgColor: '#BDB89B', type: 'text' },
+          { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 2', bgColor: '#BDB89B', type: 'text' },
+          { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 3', bgColor: '#BDB89B', type: 'text' },
+          { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'SLIDE 1', bgColor: '#FF8000', type: 'text' },
+          { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'SLIDE 2', bgColor: '#FF8000', type: 'text' },
+          { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'SLIDE 3', bgColor: '#FF8000', type: 'text' },
+          { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'SLIDE 4', bgColor: '#FF8000', type: 'text' }
+        ]
   });
 
   // Estado para controlar la previsualización (no parece usarse actualmente)
@@ -360,54 +410,130 @@ function FormTemplate({ data = null, gridLayout = null }) {
               setFormData(prevData => ({ ...prevData, movableCells: updatedCells }));
             }}
           >
-            {formData.movableCells.map((cell) => (
-              <div
-                key={cell.i}
-                data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
-                style={{
-                  border: "1px solid #ccc",
-                  padding: "10px",
-                  backgroundColor: cell.bgColor,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <input
-                  type="text"
-                  value={cell.content}
-                  onChange={(e) => {
-                    const updatedCells = [...formData.movableCells];
-                    const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
-                    if (cellIndex > -1) {
-                      updatedCells[cellIndex].content = e.target.value;
-                      setFormData((prevData) => ({
-                        ...prevData,
-                        movableCells: updatedCells,
-                      }));
-                    }
+            {formData.movableCells.map((cell) => {
+              // Ensure cell has valid properties
+              const isValidImage = cell.type === 'image' && 
+                typeof cell.value === 'string' && 
+                (cell.value.startsWith('data:image') || 
+                 cell.value.startsWith('http') || 
+                 cell.value.startsWith('https'));
+              
+              // If cell should be an image but has invalid value, force it to text
+              if (cell.type === 'image' && !isValidImage) {
+                cell.type = 'text';
+                cell.value = null;
+              }
+              
+              return (
+                <div
+                  key={cell.i}
+                  data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
+                  style={{
+                    border: "1px solid #ccc",
+                    padding: "10px",
+                    backgroundColor: cell.bgColor,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  style={{ marginBottom: "8px", width: "90%" }}
-                />
-                <input
-                  type="color"
-                  value={cell.bgColor}
-                  onChange={(e) => {
-                    const updatedCells = [...formData.movableCells];
-                    const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
-                    if (cellIndex > -1) {
-                      updatedCells[cellIndex].bgColor = e.target.value;
-                      setFormData((prevData) => ({
-                        ...prevData,
-                        movableCells: updatedCells,
-                      }));
-                    }
-                  }}
-                  style={{ width: "90%" }}
-                />
-              </div>
-            ))}
+                >
+                  <input
+                    type="text"
+                    value={cell.content}
+                    onChange={(e) => {
+                      const updatedCells = [...formData.movableCells];
+                      const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
+                      if (cellIndex > -1) {
+                        updatedCells[cellIndex].content = e.target.value;
+                        setFormData((prevData) => ({
+                          ...prevData,
+                          movableCells: updatedCells,
+                        }));
+                      }
+                    }}
+                    style={{ marginBottom: "8px", width: "90%" }}
+                  />
+                  <input
+                    type="color"
+                    value={cell.bgColor}
+                    onChange={(e) => {
+                      const updatedCells = [...formData.movableCells];
+                      const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
+                      if (cellIndex > -1) {
+                        updatedCells[cellIndex].bgColor = e.target.value;
+                        setFormData((prevData) => ({
+                          ...prevData,
+                          movableCells: updatedCells,
+                        }));
+                      }
+                    }}
+                    style={{ width: "90%" }}
+                  />
+                  {isValidImage ? (
+                    <div style={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff"}}>
+                      <img
+                        src={cell.value}
+                        alt={cell.content}
+                        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", maxWidth: "100%", maxHeight: "100%" }}
+                        onError={e => { 
+                          e.target.onerror = null; 
+                          e.target.style.display = 'none';
+                          // If image fails to load, convert cell to text
+                          cell.type = 'text';
+                          cell.value = null;
+                        }}
+                      />
+                    </div>
+                  ) : cell.i === '2' ? (
+                    <div style={{ 
+                      width: "100%", 
+                      height: "100%", 
+                      display: "flex", 
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "center", 
+                      justifyContent: "center",
+                      gap: "8px",
+                      padding: "8px",
+                      overflow: "hidden"
+                    }}>
+                      {formData.socialLinks.whatsapp && (
+                        <a href={formData.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📱</a>
+                      )}
+                      {formData.socialLinks.facebook && (
+                        <a href={formData.socialLinks.facebook} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📘</a>
+                      )}
+                      {formData.socialLinks.instagram && (
+                        <a href={formData.socialLinks.instagram} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📸</a>
+                      )}
+                      {formData.socialLinks.twitter && (
+                        <a href={formData.socialLinks.twitter} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>🐦</a>
+                      )}
+                      {formData.socialLinks.pinterest && (
+                        <a href={formData.socialLinks.pinterest} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📌</a>
+                      )}
+                      {formData.socialLinks.youtube && (
+                        <a href={formData.socialLinks.youtube} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📺</a>
+                      )}
+                      {formData.socialLinks.linkedin && (
+                        <a href={formData.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>💼</a>
+                      )}
+                      {formData.socialLinks.tiktok && (
+                        <a href={formData.socialLinks.tiktok} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>🎵</a>
+                      )}
+                      {formData.socialLinks.gmail && (
+                        <a href={formData.socialLinks.gmail} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📧</a>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ fontWeight: "bold", textAlign: "center", fontSize: "1.1rem", wordWrap: "break-word" }}>
+                      {cell.content}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </ResponsiveGridLayout>
         )}
       </div>
@@ -496,8 +622,99 @@ function FormTemplate({ data = null, gridLayout = null }) {
       return cell;
     });
     setFormData(prevData => ({ ...prevData, movableCells: updatedCells }));
+    console.log('Guardando movableCells en handlePreviewLayoutChange:', updatedCells); // Debug log
     // Save updated cells to sessionStorage
     window.sessionStorage.setItem('movableCells', JSON.stringify(updatedCells));
+  };
+
+  // Effect to ensure movableCells always has 16 items with necessary properties
+  useEffect(() => {
+    if (!formData.movableCells || !Array.isArray(formData.movableCells) || formData.movableCells.length !== 16) {
+      console.warn('movableCells state is invalid. Resetting to default structure.');
+      setFormData(prevData => ({
+        ...prevData,
+        movableCells: [
+          { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'LOGO', bgColor: '#D3D3D3', type: 'text' },
+          { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'REDES SOCIALES', bgColor: '#FFE4E1', type: 'social' },
+          { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 1', bgColor: '#A89C5D', type: 'text' },
+          { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 2', bgColor: '#FFC300', type: 'text' },
+          { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'VIDEO CORPORATIVO', bgColor: '#00BFFF', type: 'text' },
+          { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'EMPRESA', bgColor: '#295A6D', type: 'text' },
+          { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'PRODUCTOS Y SERVICIOS', bgColor: '#2B7A78', type: 'text' },
+          { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'RESERVAS', bgColor: '#FF6F00', type: 'text' },
+          { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'CALENDARIO', bgColor: '#FFFFFF', type: 'text' },
+          { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 1', bgColor: '#BDB89B', type: 'text' },
+          { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 2', bgColor: '#BDB89B', type: 'text' },
+          { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 3', bgColor: '#BDB89B', type: 'text' },
+          { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'SLIDE 1', bgColor: '#FF8000', type: 'text' },
+          { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'SLIDE 2', bgColor: '#FF8000', type: 'text' },
+          { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'SLIDE 3', bgColor: '#FF8000', type: 'text' },
+          { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'SLIDE 4', bgColor: '#FF8000', type: 'text' }
+        ]
+      }));
+    } else {
+      // Ensure necessary properties are present if movableCells is an array of 16 items but potentially missing props
+      const needsReset = formData.movableCells.some(cell => !cell.i || typeof cell.x !== 'number' || typeof cell.y !== 'number' || typeof cell.w !== 'number' || typeof cell.h !== 'number' || !cell.content || !cell.bgColor);
+      if (needsReset) {
+         console.warn('movableCells state is missing properties. Merging with default properties.');
+         setFormData(prevData => ({
+            ...prevData,
+            movableCells: prevData.movableCells.map((cell, index) => ({
+                ...[
+                    { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'LOGO', bgColor: '#D3D3D3', type: 'text' },
+                    { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'REDES SOCIALES', bgColor: '#FFE4E1', type: 'social' },
+                    { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 1', bgColor: '#A89C5D', type: 'text' },
+                    { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 2', bgColor: '#FFC300', type: 'text' },
+                    { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'VIDEO CORPORATIVO', bgColor: '#00BFFF', type: 'text' },
+                    { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'EMPRESA', bgColor: '#295A6D', type: 'text' },
+                    { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'PRODUCTOS Y SERVICIOS', bgColor: '#2B7A78', type: 'text' },
+                    { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'RESERVAS', bgColor: '#FF6F00', type: 'text' },
+                    { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'CALENDARIO', bgColor: '#FFFFFF', type: 'text' },
+                    { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 1', bgColor: '#BDB89B', type: 'text' },
+                    { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 2', bgColor: '#BDB89B', type: 'text' },
+                    { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 3', bgColor: '#BDB89B', type: 'text' },
+                    { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'SLIDE 1', bgColor: '#FF8000', type: 'text' },
+                    { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'SLIDE 2', bgColor: '#FF8000', type: 'text' },
+                    { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'SLIDE 3', bgColor: '#FF8000', type: 'text' },
+                    { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'SLIDE 4', bgColor: '#FF8000', type: 'text' }
+                  ][index], // Get default properties for this index
+                ...cell // Merge with existing cell data (position, current content/color/type/value)
+            }))
+         }));
+      }
+    }
+  }, [formData.movableCells]); // Re-run effect if movableCells state changes
+
+  // Manejador para carga de archivo de video
+  const handleVideoFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Verificar que el archivo sea un video
+      if (!file.type.startsWith('video/')) {
+        alert('Por favor, selecciona un archivo de video válido.');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData((prevData) => ({
+          ...prevData,
+          videoFile: reader.result,
+          videoUrl: "" // Limpiar la URL si se sube un archivo
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Manejador para cambios en la URL del video
+  const handleVideoUrlChange = (e) => {
+    const url = e.target.value;
+    setFormData((prevData) => ({
+      ...prevData,
+      videoUrl: url,
+      videoFile: "" // Limpiar el archivo si se ingresa una URL
+    }));
   };
 
   // Renderizado principal del componente FormTemplate
@@ -619,7 +836,70 @@ function FormTemplate({ data = null, gridLayout = null }) {
 
           {/* Subir Video Empresarial */}
           <h2>Subir Video Empresarial</h2>
-          <input type="text" id="videoUrl" name="videoUrl" placeholder="URL de YouTube" value={formData.videoUrl || ''} onChange={handleChange} />
+          <div style={{ marginBottom: "20px" }}>
+            <label htmlFor="videoUrl">URL del Video (YouTube o Vimeo):</label>
+            <input 
+              className="inputcontainer" 
+              type="text" 
+              id="videoUrl" 
+              name="videoUrl" 
+              placeholder="https://www.youtube.com/watch?v=..." 
+              value={formData.videoUrl || ''} 
+              onChange={handleVideoUrlChange} 
+            />
+            
+            <div style={{ marginTop: "10px" }}>
+              <label htmlFor="videoFile">O sube un archivo de video:</label>
+              <input 
+                type="file" 
+                id="videoFile" 
+                accept="video/*" 
+                onChange={handleVideoFileChange}
+                style={{ marginTop: "5px" }}
+              />
+              <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
+                Formatos aceptados: MP4, WebM, Ogg. Tamaño máximo: 100MB
+              </small>
+            </div>
+
+            {(formData.videoUrl || formData.videoFile) && (
+              <div style={{ 
+                marginTop: "15px", 
+                padding: "10px", 
+                border: "1px solid #ddd", 
+                borderRadius: "8px", 
+                backgroundColor: "#fff" 
+              }}>
+                <h4 style={{ marginBottom: "10px" }}>Vista previa:</h4>
+                {formData.videoUrl ? (
+                  <iframe
+                    width="100%"
+                    height="315"
+                    src={formData.videoUrl.includes('youtube.com') || formData.videoUrl.includes('youtu.be')
+                      ? `https://www.youtube.com/embed/${formData.videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i)?.[1]}`
+                      : formData.videoUrl.includes('vimeo.com')
+                      ? `https://player.vimeo.com/video/${formData.videoUrl.match(/(?:vimeo\.com\/)(\d+)/i)?.[1]}`
+                      : formData.videoUrl}
+                    title="Video Preview"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{ borderRadius: "4px" }}
+                  />
+                ) : (
+                  <video
+                    controls
+                    width="100%"
+                    height="315"
+                    src={formData.videoFile}
+                    style={{ borderRadius: "4px" }}
+                  >
+                    Tu navegador no soporta el elemento de video.
+                  </video>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Servicios */}
           <h2>Servicios</h2>
@@ -709,36 +989,111 @@ function FormTemplate({ data = null, gridLayout = null }) {
             isDraggable={true}
             isResizable={true}
           >
-            {formData.movableCells.map((cell) => (
-              <div
-                key={cell.i}
-                className="react-grid-item"
-                style={{
-                  backgroundColor: cell.bgColor,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "1px solid #ccc",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                }}
-              >
-                {cell.type === 'image' && cell.value ? (
-                  <div style={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff"}}>
-                    <img
-                      src={cell.value}
-                      alt={cell.content}
-                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", maxWidth: "100%", maxHeight: "100%" }}
-                      onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }}
-                    />
+            {formData.movableCells.map((cell) => {
+              if (cell.i === '2') {
+                return (
+                  <div
+                    key={cell.i}
+                    data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
+                    style={{
+                      border: "1px solid #ccc",
+                      backgroundColor: "#FFE4E1",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden"
+                    }}
+                  >
+                    <div style={{ 
+                      display: "flex", 
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "center", 
+                      justifyContent: "center",
+                      gap: "12px",
+                      width: "100%",
+                      height: "100%",
+                      padding: "10px"
+                    }}>
+                      {formData.socialLinks.whatsapp && (
+                        <a href={formData.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>📱</a>
+                      )}
+                      {formData.socialLinks.facebook && (
+                        <a href={formData.socialLinks.facebook} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>📘</a>
+                      )}
+                      {formData.socialLinks.instagram && (
+                        <a href={formData.socialLinks.instagram} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>📸</a>
+                      )}
+                      {formData.socialLinks.twitter && (
+                        <a href={formData.socialLinks.twitter} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>🐦</a>
+                      )}
+                      {formData.socialLinks.pinterest && (
+                        <a href={formData.socialLinks.pinterest} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>📌</a>
+                      )}
+                      {formData.socialLinks.youtube && (
+                        <a href={formData.socialLinks.youtube} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>📺</a>
+                      )}
+                      {formData.socialLinks.linkedin && (
+                        <a href={formData.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>💼</a>
+                      )}
+                      {formData.socialLinks.tiktok && (
+                        <a href={formData.socialLinks.tiktok} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>🎵</a>
+                      )}
+                      {formData.socialLinks.gmail && (
+                        <a href={formData.socialLinks.gmail} target="_blank" rel="noopener noreferrer" style={{ fontSize: "28px", textDecoration: "none", color: "#000" }}>📧</a>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div style={{ fontWeight: "bold", textAlign: "center", fontSize: "1.1rem", wordWrap: "break-word" }}>
-                    {cell.content}
-                  </div>
-                )}
-              </div>
-            ))}
+                );
+              }
+
+              const isValidImage = cell.type === 'image' && 
+                typeof cell.value === 'string' && 
+                (cell.value.startsWith('data:image') || 
+                 cell.value.startsWith('http') || 
+                 cell.value.startsWith('https'));
+              
+              if (cell.type === 'image' && !isValidImage) {
+                cell.type = 'text';
+                cell.value = null;
+              }
+              
+              return (
+                <div
+                  key={cell.i}
+                  data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
+                  style={{
+                    border: "1px solid #ccc",
+                    padding: "10px",
+                    backgroundColor: cell.bgColor,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {isValidImage ? (
+                    <div style={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff"}}>
+                      <img
+                        src={cell.value}
+                        alt={cell.content}
+                        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", maxWidth: "100%", maxHeight: "100%" }}
+                        onError={e => { 
+                          e.target.onerror = null; 
+                          e.target.style.display = 'none';
+                          cell.type = 'text';
+                          cell.value = null;
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ fontWeight: "bold", textAlign: "center", fontSize: "1.1rem", wordWrap: "break-word" }}>
+                      {cell.content}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </ResponsiveGridLayout>
         </div>
       </div>
