@@ -329,7 +329,7 @@ function FormTemplate({ data = null, gridLayout = null }) {
   });
 
   // Estado para controlar la previsualización (no parece usarse actualmente)
-  const [preview, setPreview] = useState(false);
+  const [previewEnabled, setPreviewEnabled] = useState(false); // New state for preview visibility
   // Estado para controlar qué sección del acordeón está activa
   const [activeAccordion, setActiveAccordion] = useState(null);
   // Estado para almacenar la celda que se está arrastrando
@@ -611,7 +611,6 @@ function FormTemplate({ data = null, gridLayout = null }) {
                  cell.value.startsWith('http') || 
                  cell.value.startsWith('https'));
               
-              // If cell should be an image but has invalid value, force it to text
               if (cell.type === 'image' && !isValidImage) {
                 cell.type = 'text';
                 cell.value = null;
@@ -631,38 +630,6 @@ function FormTemplate({ data = null, gridLayout = null }) {
                     justifyContent: "center",
                   }}
                 >
-                  <input
-                    type="text"
-                    value={cell.content}
-                    onChange={(e) => {
-                      const updatedCells = [...formData.movableCells];
-                      const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
-                      if (cellIndex > -1) {
-                        updatedCells[cellIndex].content = e.target.value;
-                        setFormData((prevData) => ({
-                          ...prevData,
-                          movableCells: updatedCells,
-                        }));
-                      }
-                    }}
-                    style={{ marginBottom: "8px", width: "90%" }}
-                  />
-                  <input
-                    type="color"
-                    value={cell.bgColor}
-                    onChange={(e) => {
-                      const updatedCells = [...formData.movableCells];
-                      const cellIndex = updatedCells.findIndex(item => item.i === cell.i);
-                      if (cellIndex > -1) {
-                        updatedCells[cellIndex].bgColor = e.target.value;
-                        setFormData((prevData) => ({
-                          ...prevData,
-                          movableCells: updatedCells,
-                        }));
-                      }
-                    }}
-                    style={{ width: "90%" }}
-                  />
                   {isValidImage ? (
                     <div style={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff"}}>
                       <img
@@ -672,52 +639,10 @@ function FormTemplate({ data = null, gridLayout = null }) {
                         onError={e => { 
                           e.target.onerror = null; 
                           e.target.style.display = 'none';
-                          // If image fails to load, convert cell to text
                           cell.type = 'text';
                           cell.value = null;
                         }}
                       />
-                    </div>
-                  ) : cell.i === '2' ? (
-                    <div style={{ 
-                      width: "100%", 
-                      height: "100%", 
-                      display: "flex", 
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      alignItems: "center", 
-                      justifyContent: "center",
-                      gap: "8px",
-                      padding: "8px",
-                      overflow: "hidden"
-                    }}>
-                      {formData.socialLinks.whatsapp && (
-                        <a href={formData.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📱</a>
-                      )}
-                      {formData.socialLinks.facebook && (
-                        <a href={formData.socialLinks.facebook} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📘</a>
-                      )}
-                      {formData.socialLinks.instagram && (
-                        <a href={formData.socialLinks.instagram} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📸</a>
-                      )}
-                      {formData.socialLinks.twitter && (
-                        <a href={formData.socialLinks.twitter} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>🐦</a>
-                      )}
-                      {formData.socialLinks.pinterest && (
-                        <a href={formData.socialLinks.pinterest} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📌</a>
-                      )}
-                      {formData.socialLinks.youtube && (
-                        <a href={formData.socialLinks.youtube} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📺</a>
-                      )}
-                      {formData.socialLinks.linkedin && (
-                        <a href={formData.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>💼</a>
-                      )}
-                      {formData.socialLinks.tiktok && (
-                        <a href={formData.socialLinks.tiktok} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>🎵</a>
-                      )}
-                      {formData.socialLinks.gmail && (
-                        <a href={formData.socialLinks.gmail} target="_blank" rel="noopener noreferrer" style={{ fontSize: "24px", textDecoration: "none" }}>📧</a>
-                      )}
                     </div>
                   ) : (
                     <div style={{ fontWeight: "bold", textAlign: "center", fontSize: "1.1rem", wordWrap: "break-word" }}>
@@ -1867,121 +1792,137 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </div>
         </form>
       </div>
-      {/* Vista previa en tiempo real */}
-      <div className="preview-container" style={{ marginTop: 40 }}>
-        <h2>Vista Previa</h2>
-        <div style={{ width: '100%', minHeight: 600, border: '1px solid #ccc', borderRadius: 8, background: '#fff', padding: '20px' }}>
-          <ResponsiveGridLayout
-            className="layout"
-            layouts={previewLayout}
-            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-            cols={{ lg: 4, md: 4, sm: 4, xs: 4, xxs: 4 }}
-            rowHeight={150}
-            width={1200}
-            onLayoutChange={handlePreviewLayoutChange}
-            draggableHandle=".react-grid-item"
-            isDraggable={true}
-            isResizable={true}
-          >
-            {formData.movableCells.map((cell) => {
-              if (cell.i === '6') {
+
+      {/* Vista previa en tiempo real - Comentada para ocultar
+      <h2 className="switchcontainer">
+        Vista Previa
+        <label className="toggle-switch" style={{ marginLeft: "10px" }}>
+          <input
+            type="checkbox"
+            checked={previewEnabled}
+            onChange={() => setPreviewEnabled(!previewEnabled)}
+          />
+          <div>
+            <span className="slider"></span>
+          </div>
+        </label>
+      </h2>
+      {previewEnabled && (
+        <div className="preview-container" style={{ marginTop: 40 }}>
+          <div style={{ width: '100%', minHeight: 600, border: '1px solid #ccc', borderRadius: 8, background: '#fff', padding: '20px' }}>
+            <ResponsiveGridLayout
+              className="layout"
+              layouts={previewLayout}
+              breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+              cols={{ lg: 4, md: 4, sm: 4, xs: 4, xxs: 4 }}
+              rowHeight={150}
+              width={1200}
+              onLayoutChange={handlePreviewLayoutChange}
+              draggableHandle=".react-grid-item"
+              isDraggable={true}
+              isResizable={true}
+            >
+              {formData.movableCells.map((cell) => {
+                if (cell.i === '6') {
+                  return (
+                    <div
+                      key={cell.i}
+                      data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
+                      style={{
+                        border: "1px solid #ccc",
+                        padding: "15px",
+                        backgroundColor: cell.bgColor,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "10px",
+                        overflow: "auto"
+                      }}
+                    >
+                      <h3 style={{ margin: "0", color: "#333", fontSize: "1.2rem", textAlign: "center" }}>
+                        {formData.title}
+                      </h3>
+                      <div style={{ 
+                        display: "flex", 
+                        flexDirection: "column", 
+                        gap: "8px",
+                        width: "100%",
+                        fontSize: "0.9rem"
+                      }}>
+                        <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <i className="fas fa-building" style={{ color: "#666" }}></i>
+                          {formData.businessType}
+                        </p>
+                        <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <i className="fas fa-map-marker-alt" style={{ color: "#666" }}></i>
+                          {formData.address}
+                        </p>
+                        <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <i className="fas fa-phone" style={{ color: "#666" }}></i>
+                          {formData.phone}
+                        </p>
+                        <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <i className="fas fa-envelope" style={{ color: "#666" }}></i>
+                          {formData.email}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
+
+                const isValidImage = cell.type === 'image' && 
+                  typeof cell.value === 'string' && 
+                  (cell.value.startsWith('data:image') || 
+                   cell.value.startsWith('http') || 
+                   cell.value.startsWith('https'));
+                
+                if (cell.type === 'image' && !isValidImage) {
+                  cell.type = 'text';
+                  cell.value = null;
+                }
+                
                 return (
                   <div
                     key={cell.i}
                     data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
                     style={{
                       border: "1px solid #ccc",
-                      padding: "15px",
+                      padding: "10px",
                       backgroundColor: cell.bgColor,
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: "10px",
-                      overflow: "auto"
                     }}
                   >
-                    <h3 style={{ margin: "0", color: "#333", fontSize: "1.2rem", textAlign: "center" }}>
-                      {formData.title}
-                    </h3>
-                    <div style={{ 
-                      display: "flex", 
-                      flexDirection: "column", 
-                      gap: "8px",
-                      width: "100%",
-                      fontSize: "0.9rem"
-                    }}>
-                      <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
-                        <i className="fas fa-building" style={{ color: "#666" }}></i>
-                        {formData.businessType}
-                      </p>
-                      <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
-                        <i className="fas fa-map-marker-alt" style={{ color: "#666" }}></i>
-                        {formData.address}
-                      </p>
-                      <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
-                        <i className="fas fa-phone" style={{ color: "#666" }}></i>
-                        {formData.phone}
-                      </p>
-                      <p style={{ margin: "0", display: "flex", alignItems: "center", gap: "5px" }}>
-                        <i className="fas fa-envelope" style={{ color: "#666" }}></i>
-                        {formData.email}
-                      </p>
-                    </div>
-                  </div>
+                    {isValidImage ? (
+                      <div style={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff"}}>
+                        <img
+                          src={cell.value}
+                          alt={cell.content}
+                          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", maxWidth: "100%", maxHeight: "100%" }}
+                          onError={e => { 
+                            e.target.onerror = null; 
+                            e.target.style.display = 'none';
+                            cell.type = 'text';
+                            cell.value = null;
+                          }} 
+                        />
+                      </div> 
+                    ) : (
+                      <div style={{ fontWeight: "bold", textAlign: "center", fontSize: "1.1rem", wordWrap: "break-word" }}>
+                        {cell.content}
+                      </div>
+                    )}
+                  </div> 
                 );
-              }
-
-              const isValidImage = cell.type === 'image' && 
-                typeof cell.value === 'string' && 
-                (cell.value.startsWith('data:image') || 
-                 cell.value.startsWith('http') || 
-                 cell.value.startsWith('https'));
-              
-              if (cell.type === 'image' && !isValidImage) {
-                cell.type = 'text';
-                cell.value = null;
-              }
-              
-              return (
-                <div
-                  key={cell.i}
-                  data-grid={{ x: cell.x, y: cell.y, w: cell.w, h: cell.h }}
-                  style={{
-                    border: "1px solid #ccc",
-                    padding: "10px",
-                    backgroundColor: cell.bgColor,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {isValidImage ? (
-                    <div style={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff"}}>
-                      <img
-                        src={cell.value}
-                        alt={cell.content}
-                        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", maxWidth: "100%", maxHeight: "100%" }}
-                        onError={e => { 
-                          e.target.onerror = null; 
-                          e.target.style.display = 'none';
-                          cell.type = 'text';
-                          cell.value = null;
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div style={{ fontWeight: "bold", textAlign: "center", fontSize: "1.1rem", wordWrap: "break-word" }}>
-                      {cell.content}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </ResponsiveGridLayout>
+              })}
+            </ResponsiveGridLayout>
+          </div>
         </div>
-      </div>
+      )}
+      */}
     </div>
   );
 }
