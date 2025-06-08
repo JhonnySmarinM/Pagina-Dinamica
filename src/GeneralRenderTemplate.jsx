@@ -7,6 +7,9 @@ import "slick-carousel/slick/slick-theme.css";
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+// Import IndexedDB utility functions
+import { loadData } from "./utils/indexedDB";
+
 // Define breakpoints and columns outside component
 const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
 const cols = { lg: 4, md: 4, sm: 4, xs: 4, xxs: 4 };
@@ -63,7 +66,12 @@ const ReservationCell = ({ cell }) => {
 
   const handleReservationSubmit = (e) => {
     e.preventDefault();
-    alert(cell.value.mensajeConfirmacion);
+    // Basic validation
+    if (!reservationData.nombre || !reservationData.email || !reservationData.telefono || !reservationData.fecha || !reservationData.hora) {
+      alert('Por favor, completa todos los campos obligatorios.');
+      return;
+    }
+    alert(`${cell.value.mensajeConfirmacion}\n\nDetalles de tu reserva:\nNombre: ${reservationData.nombre}\nEmail: ${reservationData.email}\nTeléfono: ${reservationData.telefono}\nFecha: ${reservationData.fecha}\nHora: ${reservationData.hora}\nPersonas: ${reservationData.personas}`);
     setShowReservationForm(false);
     setReservationData({
       nombre: '',
@@ -78,10 +86,12 @@ const ReservationCell = ({ cell }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Input changed: ${name}, Value: ${value}`);
     setReservationData(prev => ({
       ...prev,
       [name]: value
     }));
+    console.log('Updated reservationData:', { ...reservationData, [name]: value });
   };
 
   return (
@@ -210,7 +220,13 @@ const ReservationCell = ({ cell }) => {
             Formulario de Reserva
           </h3>
           
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+            pointerEvents: "auto",
+            zIndex: 100
+          }}>
             <input
               type="text"
               name="nombre"
@@ -270,8 +286,12 @@ const ReservationCell = ({ cell }) => {
                 borderRadius: "4px",
                 border: "1px solid rgba(255,255,255,0.3)",
                 backgroundColor: "rgba(255,255,255,0.9)",
-                fontSize: "0.9rem"
+                fontSize: "0.9rem",
+                cursor: "pointer",
+                pointerEvents: "auto",
+                zIndex: 10
               }}
+              tabIndex="0"
             />
             
             <input
@@ -285,8 +305,12 @@ const ReservationCell = ({ cell }) => {
                 borderRadius: "4px",
                 border: "1px solid rgba(255,255,255,0.3)",
                 backgroundColor: "rgba(255,255,255,0.9)",
-                fontSize: "0.9rem"
+                fontSize: "0.9rem",
+                cursor: "pointer",
+                pointerEvents: "auto",
+                zIndex: 10
               }}
+              tabIndex="0"
             />
             
             <select
@@ -383,138 +407,147 @@ const GeneralRenderTemplate = () => {
     xxs: layout
   }), [layout]);
 
-  // Load initial state from sessionStorage
+  // Load initial state from IndexedDB
   useEffect(() => {
-    const storedMovableCells = window.sessionStorage.getItem('movableCells');
-    const storedLayout = window.sessionStorage.getItem('layout');
-    const storedFormData = window.sessionStorage.getItem('formData');
+    const loadInitialData = async () => {
+      const storedMovableCells = await loadData('movableCells');
+      const storedFormData = await loadData('formData');
+      const storedLayout = await loadData('layout'); // If layout is also saved separately
 
-    let initialMovableCells = defaultMovableCells;
-    let initialLayout = defaultLayout;
-    let initialSocialLinks = {};
-    let initialFormData = {};
+      let initialMovableCells = defaultMovableCells;
+      let initialLayout = defaultLayout;
+      let initialSocialLinks = {};
+      let initialFormData = {};
 
-    if (storedLayout) {
-      try {
-        const parsedLayout = JSON.parse(storedLayout);
-        // Validate layout structure basic check
-        if (Array.isArray(parsedLayout) && parsedLayout.length === defaultLayout.length && parsedLayout.every(item => item.i && typeof item.x === 'number')) {
-          initialLayout = parsedLayout;
-        } else {
-           console.warn('Invalid layout data in sessionStorage. Using defaultLayout.');
+      if (storedLayout) {
+        try {
+          const parsedLayout = storedLayout;
+          // Validate layout structure basic check
+          if (Array.isArray(parsedLayout) && parsedLayout.length === defaultLayout.length && parsedLayout.every(item => item.i && typeof item.x === 'number')) {
+            initialLayout = parsedLayout;
+          } else {
+             console.warn('Invalid layout data in IndexedDB. Using defaultLayout.');
+          }
+        } catch (error) {
+          console.error('Error parsing layout from IndexedDB. Using defaultLayout.', error);
         }
-      } catch (error) {
-        console.error('Error parsing layout from sessionStorage. Using defaultLayout.', error);
       }
-    }
 
-    if (storedMovableCells) {
-      try {
-        const parsedCells = JSON.parse(storedMovableCells);
-         // Validate cells structure basic check
-        if (Array.isArray(parsedCells) && parsedCells.length === defaultMovableCells.length && parsedCells.every(cell => cell.i && cell.content && cell.bgColor)) {
-           initialMovableCells = parsedCells;
-        } else {
-           console.warn('Invalid movableCells data in sessionStorage. Using defaultMovableCells.');
+      if (storedMovableCells) {
+        try {
+          const parsedCells = storedMovableCells;
+           // Validate cells structure basic check
+          if (Array.isArray(parsedCells) && parsedCells.length === defaultMovableCells.length && parsedCells.every(cell => cell.i && cell.content && cell.bgColor)) {
+             initialMovableCells = parsedCells;
+          } else {
+             console.warn('Invalid movableCells data in IndexedDB. Using defaultMovableCells.');
+          }
+        } catch (error) {
+          console.error('Error parsing movableCells from IndexedDB. Using defaultMovableCells.', error);
         }
-      } catch (error) {
-        console.error('Error parsing movableCells from sessionStorage. Using defaultMovableCells.', error);
       }
-    }
 
-    if (storedFormData) {
-      try {
-        const parsedFormData = JSON.parse(storedFormData);
-         initialFormData = parsedFormData;
-        // Guardar los enlaces sociales
-        if (parsedFormData.socialLinks) {
-          initialSocialLinks = parsedFormData.socialLinks;
+      if (storedFormData) {
+        try {
+          const parsedFormData = storedFormData;
+           initialFormData = parsedFormData;
+          // Guardar los enlaces sociales
+          if (parsedFormData.socialLinks) {
+            initialSocialLinks = parsedFormData.socialLinks;
+          }
+          // Update image cells based on loaded formData, clean up invalid image values
+          initialMovableCells = initialMovableCells.map(cell => {
+            if (cell.i === '1' && parsedFormData.logo && typeof parsedFormData.logo === 'string' && parsedFormData.logo.startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.logo, content: 'LOGO' };
+            }
+            if (cell.i === '3' && parsedFormData.carouselImages && Array.isArray(parsedFormData.carouselImages) && parsedFormData.carouselImages.length > 0 && typeof parsedFormData.carouselImages[0] === 'string' && parsedFormData.carouselImages[0].startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.carouselImages[0], content: cell.content };
+            }
+            if (cell.i === '4' && parsedFormData.carouselImages2 && Array.isArray(parsedFormData.carouselImages2) && parsedFormData.carouselImages2.length > 0 && typeof parsedFormData.carouselImages2[0] === 'string' && parsedFormData.carouselImages2[0].startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.carouselImages2[0], content: cell.content };
+            }
+            // Add checks for other image cells (10, 11, 12, 13, 14, 15, 16)
+             if (cell.i === '10' && parsedFormData.fotoTexto1 && typeof parsedFormData.fotoTexto1 === 'string' && parsedFormData.fotoTexto1.startsWith('data:image')) {
+              return { ...cell, type: 'fotoTexto', value: { ...cell.value, image: parsedFormData.fotoTexto1 } };
+            }
+             if (cell.i === '11' && parsedFormData.fotoTexto2 && typeof parsedFormData.fotoTexto2 === 'string' && parsedFormData.fotoTexto2.startsWith('data:image')) {
+              return { ...cell, type: 'fotoTexto', value: { ...cell.value, image: parsedFormData.fotoTexto2 } };
+            }
+             if (cell.i === '12' && parsedFormData.fotoTexto3 && typeof parsedFormData.fotoTexto3 === 'string' && parsedFormData.fotoTexto3.startsWith('data:image')) {
+              return { ...cell, type: 'fotoTexto', value: { ...cell.value, image: parsedFormData.fotoTexto3 } };
+            }
+             if (cell.i === '13' && parsedFormData.carouselVerticalImages && Array.isArray(parsedFormData.carouselVerticalImages) && parsedFormData.carouselVerticalImages.length > 0) {
+              return { ...cell, type: 'verticalCarousel', value: parsedFormData.carouselVerticalImages };
+            }
+             if (cell.i === '14' && parsedFormData.carouselHorizontalImages && Array.isArray(parsedFormData.carouselHorizontalImages) && parsedFormData.carouselHorizontalImages.length > 0) {
+              return { ...cell, type: 'horizontalCarousel', value: parsedFormData.carouselHorizontalImages };
+            }
+             if (cell.i === '15' && parsedFormData.carouselVerticalImages2 && Array.isArray(parsedFormData.carouselVerticalImages2) && parsedFormData.carouselVerticalImages2.length > 0) {
+              return { ...cell, type: 'verticalCarousel', value: parsedFormData.carouselVerticalImages2 };
+            }
+             if (cell.i === '16' && parsedFormData.carouselHorizontalImages2 && Array.isArray(parsedFormData.carouselHorizontalImages2) && parsedFormData.carouselHorizontalImages2.length > 0) {
+              return { ...cell, type: 'horizontalCarousel', value: parsedFormData.carouselHorizontalImages2 };
+            }
+            // Set values for cells 6, 7, 8, 9 based on formData
+             if (cell.i === '6' && parsedFormData.title) {
+              return { 
+                ...cell, 
+                type: 'text', // Type remains text, content will be rendered by renderCellContent
+                value: {
+                  title: parsedFormData.title,
+                  businessType: parsedFormData.businessType,
+                  address: parsedFormData.address,
+                  phone: parsedFormData.phone,
+                  email: parsedFormData.email
+                }
+              };
+            }
+             if (cell.i === '7' && parsedFormData.services) {
+              return { ...cell, type: 'services', value: parsedFormData.services };
+            }
+             if (cell.i === '8' && parsedFormData.reservas) {
+              return { ...cell, type: 'reservas', value: parsedFormData.reservas };
+            }
+             if (cell.i === '9' && parsedFormData.calendario) {
+              return { 
+                ...cell, 
+                type: 'calendar',
+                value: { tipo: parsedFormData.calendario, url: parsedFormData.calendarioUrl }
+              };
+            }
+
+            // If cell type was image but value is invalid, revert to text
+            if (cell.type === 'image' && (!cell.value || typeof cell.value !== 'string' || !cell.value.startsWith('data:image'))) {
+                 console.warn(`Cell ${cell.i} had invalid image value. Reverting to text.`);
+                 return { ...cell, type: 'text', value: cell.content || 'CONTENIDO' }; // Revert to text content
+             }
+
+            return cell;
+          });
+          // Update social links, carousel images, and video data from formData
+          setSocialLinks(initialFormData.socialLinks || {});
+          setCarouselImages(initialFormData.carouselImages || []);
+          setCarouselImages2(initialFormData.carouselImages2 || []);
+          setVideoUrl(initialFormData.videoUrl || "");
+          setVideoFile(initialFormData.videoFile || "");
+
+        } catch (error) {
+          console.error('Error parsing formData from IndexedDB. Using default social links and image handling.', error);
         }
-        // Update image cells based on loaded formData, clean up invalid image values
-        initialMovableCells = initialMovableCells.map(cell => {
-          if (cell.i === '1' && parsedFormData.logo && typeof parsedFormData.logo === 'string' && parsedFormData.logo.startsWith('data:image')) {
-            return { ...cell, type: 'image', value: parsedFormData.logo, content: 'LOGO' };
-          }
-          if (cell.i === '3' && parsedFormData.carouselImages && Array.isArray(parsedFormData.carouselImages) && parsedFormData.carouselImages.length > 0 && typeof parsedFormData.carouselImages[0] === 'string' && parsedFormData.carouselImages[0].startsWith('data:image')) {
-            return { ...cell, type: 'image', value: parsedFormData.carouselImages[0], content: cell.content };
-          }
-          if (cell.i === '4' && parsedFormData.carouselImages2 && Array.isArray(parsedFormData.carouselImages2) && parsedFormData.carouselImages2.length > 0 && typeof parsedFormData.carouselImages2[0] === 'string' && parsedFormData.carouselImages2[0].startsWith('data:image')) {
-            return { ...cell, type: 'image', value: parsedFormData.carouselImages2[0], content: cell.content };
-          }
-          // Add checks for other image cells (10, 11, 12)
-           if (cell.i === '10' && parsedFormData.fotoTexto1 && typeof parsedFormData.fotoTexto1 === 'string' && parsedFormData.fotoTexto1.startsWith('data:image')) {
-            return { ...cell, type: 'image', value: parsedFormData.fotoTexto1, content: cell.content };
-          }
-           if (cell.i === '11' && parsedFormData.fotoTexto2 && typeof parsedFormData.fotoTexto2 === 'string' && parsedFormData.fotoTexto2.startsWith('data:image')) {
-            return { ...cell, type: 'image', value: parsedFormData.fotoTexto2, content: cell.content };
-          }
-           if (cell.i === '12' && parsedFormData.fotoTexto3 && typeof parsedFormData.fotoTexto3 === 'string' && parsedFormData.fotoTexto3.startsWith('data:image')) {
-            return { ...cell, type: 'image', value: parsedFormData.fotoTexto3, content: cell.content };
-          }
-          
-          // If cell type was image but value is invalid, revert to text
-          if (cell.type === 'image' && (!cell.value || typeof cell.value !== 'string' || !cell.value.startsWith('data:image'))) {
-               console.warn(`Cell ${cell.i} had invalid image value. Reverting to text.`);
-               return { ...cell, type: 'text', value: cell.content || 'CONTENIDO' }; // Revert to text content
-           }
-
-          return cell;
-        });
-      } catch (error) {
-        console.error('Error parsing formData from sessionStorage. Using default social links and image handling.', error);
       }
-    }
 
-    setLayout(initialLayout);
-    setMovableCells(initialMovableCells);
-    setSocialLinks(initialSocialLinks);
+      setLayout(initialLayout);
+      setMovableCells(initialMovableCells);
+    };
 
-  }, []);
-
-  // Load carousel images from formData
-  useEffect(() => {
-    const storedFormData = window.sessionStorage.getItem('formData');
-    if (storedFormData) {
-      try {
-        const parsedFormData = JSON.parse(storedFormData);
-        if (parsedFormData.carouselImages && Array.isArray(parsedFormData.carouselImages)) {
-          setCarouselImages(parsedFormData.carouselImages.filter(img => 
-            typeof img === 'string' && img.startsWith('data:image')
-          ));
-        }
-        if (parsedFormData.carouselImages2 && Array.isArray(parsedFormData.carouselImages2)) {
-          setCarouselImages2(parsedFormData.carouselImages2.filter(img => 
-            typeof img === 'string' && img.startsWith('data:image')
-          ));
-        }
-      } catch (error) {
-        console.error('Error parsing formData for carousel images:', error);
-      }
-    }
-  }, []);
-
-  // Load video data from formData
-  useEffect(() => {
-    const storedFormData = window.sessionStorage.getItem('formData');
-    if (storedFormData) {
-      try {
-        const parsedFormData = JSON.parse(storedFormData);
-        if (parsedFormData.videoUrl && typeof parsedFormData.videoUrl === 'string') {
-          setVideoUrl(parsedFormData.videoUrl);
-        }
-        if (parsedFormData.videoFile && typeof parsedFormData.videoFile === 'string') {
-          setVideoFile(parsedFormData.videoFile);
-        }
-      } catch (error) {
-        console.error('Error parsing formData for video:', error);
-      }
-    }
+    loadInitialData();
   }, []);
 
   const handleLayoutChange = (newLayout) => {
     setLayout(newLayout);
-    // Save layout to sessionStorage
-    window.sessionStorage.setItem('layout', JSON.stringify(newLayout));
+    // Saving layout to IndexedDB is optional here, as it's primarily handled by FormTemplate
+    // If needed, uncomment the line below:
+    // saveData('layout', newLayout).catch(e => console.error('Error saving layout to IndexedDB:', e));
   };
 
   const renderCellContent = (cell) => {
@@ -849,6 +882,7 @@ const GeneralRenderTemplate = () => {
     }
 
     if (cell.i === '8' && cell.value) {
+      console.log('ReservationCell received cell:', cell);
       return <ReservationCell cell={cell} />;
     }
 
@@ -1035,6 +1069,436 @@ const GeneralRenderTemplate = () => {
                 {cell.value.description}
               </p>
             )}
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '11' && cell.value) {
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+        }}>
+          {cell.value.image && (
+            <img
+              src={cell.value.image}
+              alt="Foto 2"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
+          )}
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "16px",
+            background: "rgba(0, 0, 0, 0.4)",
+            color: cell.value.textColor || "#FFFFFF",
+            fontFamily: cell.value.fontFamily || "Arial"
+          }}>
+            {cell.value.title && (
+              <h3 style={{
+                margin: "0 0 8px 0",
+                fontSize: "clamp(1.2rem, 3vw, 2rem)",
+                textAlign: "center",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                fontWeight: "bold",
+                color: cell.value.textColor || "#FFFFFF",
+                fontFamily: cell.value.fontFamily || "Arial"
+              }}>
+                {cell.value.title}
+              </h3>
+            )}
+            {cell.value.description && (
+              <p style={{
+                margin: "0",
+                fontSize: "clamp(0.9rem, 2vw, 1.2rem)",
+                textAlign: "center",
+                lineHeight: "1.4",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.5)",
+                color: cell.value.textColor || "#FFFFFF",
+                fontFamily: cell.value.fontFamily || "Arial"
+              }}>
+                {cell.value.description}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '12' && cell.value) {
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+        }}>
+          {cell.value.image && (
+            <img
+              src={cell.value.image}
+              alt="Foto 3"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
+          )}
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "16px",
+            background: "rgba(0, 0, 0, 0.4)",
+            color: cell.value.textColor || "#FFFFFF",
+            fontFamily: cell.value.fontFamily || "Arial"
+          }}>
+            {cell.value.title && (
+              <h3 style={{
+                margin: "0 0 8px 0",
+                fontSize: "clamp(1.2rem, 3vw, 2rem)",
+                textAlign: "center",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                fontWeight: "bold",
+                color: cell.value.textColor || "#FFFFFF",
+                fontFamily: cell.value.fontFamily || "Arial"
+              }}>
+                {cell.value.title}
+              </h3>
+            )}
+            {cell.value.description && (
+              <p style={{
+                margin: "0",
+                fontSize: "clamp(0.9rem, 2vw, 1.2rem)",
+                textAlign: "center",
+                lineHeight: "1.4",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.5)",
+                color: cell.value.textColor || "#FFFFFF",
+                fontFamily: cell.value.fontFamily || "Arial"
+              }}>
+                {cell.value.description}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '13' && cell.value && cell.value.length > 0) {
+      const verticalCarouselSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        vertical: true,
+        verticalSwiping: true,
+        arrows: true,
+        adaptiveHeight: true
+      };
+
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #E0BBE4, #957DAD)", // Soft purple gradient
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          overflow: "hidden",
+          padding: "8px",
+          position: "relative"
+        }}>
+          <h3 style={{
+            margin: "0 0 10px 0",
+            color: "#FFFFFF",
+            fontSize: "clamp(1rem, 2.5vw, 1.5rem)",
+            textAlign: "center",
+            textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
+            fontWeight: "bold"
+          }}>
+            Nuestras Novedades
+          </h3>
+          <div style={{ flex: "1", width: "100%", overflow: "hidden" }}>
+            <Slider {...verticalCarouselSettings} style={{ width: "100%", height: "100%" }}>
+              {cell.value.map((image, index) => (
+                !!image && typeof image === 'string' && image.startsWith('data:image') && (
+                  <div key={index} style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "5px"
+                  }}>
+                    <img
+                      src={image}
+                      alt={`Carrusel Vertical ${index + 1}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        width: "auto",
+                        height: "auto",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                      }}
+                      onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} // Hide broken images
+                    />
+                  </div>
+                )
+              ))}
+            </Slider>
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '14' && cell.value && cell.value.length > 0) {
+      const horizontalCarouselSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        arrows: true,
+        adaptiveHeight: true
+      };
+
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #FFDFD3, #FFA07A)", // Soft orange gradient
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          overflow: "hidden",
+          padding: "8px",
+          position: "relative"
+        }}>
+          <h3 style={{
+            margin: "0 0 10px 0",
+            color: "#FFFFFF",
+            fontSize: "clamp(1rem, 2.5vw, 1.5rem)",
+            textAlign: "center",
+            textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
+            fontWeight: "bold"
+          }}>
+            Galería de Imágenes
+          </h3>
+          <div style={{ flex: "1", width: "100%", overflow: "hidden" }}>
+            <Slider {...horizontalCarouselSettings} style={{ width: "100%", height: "100%" }}>
+              {cell.value.map((image, index) => (
+                !!image && typeof image === 'string' && image.startsWith('data:image') && (
+                  <div key={index} style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "5px"
+                  }}>
+                    <img
+                      src={image}
+                      alt={`Carrusel Horizontal ${index + 1}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        width: "auto",
+                        height: "auto",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                      }}
+                      onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} // Hide broken images
+                    />
+                  </div>
+                )
+              ))}
+            </Slider>
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '15' && cell.value && cell.value.length > 0) {
+      const verticalCarouselSettings2 = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        vertical: true,
+        verticalSwiping: true,
+        arrows: true,
+        adaptiveHeight: true
+      };
+
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #CDEAC0, #83C5BE)", // Soft green gradient
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          overflow: "hidden",
+          padding: "8px",
+          position: "relative"
+        }}>
+          <h3 style={{
+            margin: "0 0 10px 0",
+            color: "#FFFFFF",
+            fontSize: "clamp(1rem, 2.5vw, 1.5rem)",
+            textAlign: "center",
+            textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
+            fontWeight: "bold"
+          }}>
+            Eventos y Promociones
+          </h3>
+          <div style={{ flex: "1", width: "100%", overflow: "hidden" }}>
+            <Slider {...verticalCarouselSettings2} style={{ width: "100%", height: "100%" }}>
+              {cell.value.map((image, index) => (
+                !!image && typeof image === 'string' && image.startsWith('data:image') && (
+                  <div key={index} style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "5px"
+                  }}>
+                    <img
+                      src={image}
+                      alt={`Carrusel Vertical 2 ${index + 1}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        width: "auto",
+                        height: "auto",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                      }}
+                      onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} // Hide broken images
+                    />
+                  </div>
+                )
+              ))}
+            </Slider>
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '16' && cell.value && cell.value.length > 0) {
+      const horizontalCarouselSettings2 = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        arrows: true,
+        adaptiveHeight: true
+      };
+
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #B5EAD7, #79BB9A)", // Soft teal gradient
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          overflow: "hidden",
+          padding: "8px",
+          position: "relative"
+        }}>
+          <h3 style={{
+            margin: "0 0 10px 0",
+            color: "#FFFFFF",
+            fontSize: "clamp(1rem, 2.5vw, 1.5rem)",
+            textAlign: "center",
+            textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
+            fontWeight: "bold"
+          }}>
+            Nuevos Proyectos
+          </h3>
+          <div style={{ flex: "1", width: "100%", overflow: "hidden" }}>
+            <Slider {...horizontalCarouselSettings2} style={{ width: "100%", height: "100%" }}>
+              {cell.value.map((image, index) => (
+                !!image && typeof image === 'string' && image.startsWith('data:image') && (
+                  <div key={index} style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "5px"
+                  }}>
+                    <img
+                      src={image}
+                      alt={`Carrusel Horizontal 2 ${index + 1}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        width: "auto",
+                        height: "auto",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                      }}
+                      onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} // Hide broken images
+                    />
+                  </div>
+                )
+              ))}
+            </Slider>
           </div>
         </div>
       );
@@ -1433,29 +1897,52 @@ const GeneralRenderTemplate = () => {
         isResizable={true}
       >
         {console.log('Rendering movableCells:', movableCells)}
-        {movableCells.map((cell) => (
-          <div
-            key={cell.i}
-            className="react-grid-item"
-            style={{
-              backgroundColor: cell.bgColor,
-              display: "flex",
-              justifyContent: cell.content === "REDES" ? "flex-start" : "center",
-              alignItems: cell.content === "REDES" ? "flex-start" : "center",
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              overflow: "hidden",
-            }}
-          >
-            {renderCellContent(cell)}
-          </div>
-        ))}
+        {movableCells.map((cell) => {
+          if (cell.i === '8') {
+            console.log('ReservationCell received cell:', cell);
+          }
+          const cellContent = JSON.parse(JSON.stringify(cell));
+          return (
+            <div
+              key={cell.i}
+              className="react-grid-item"
+              style={{
+                backgroundColor: cell.bgColor,
+                display: "flex",
+                justifyContent: cell.content === "REDES" ? "flex-start" : "center",
+                alignItems: cell.content === "REDES" ? "flex-start" : "center",
+                border: "1px solid #ccc",
+                borderRadius: "10px",
+                overflow: "hidden",
+              }}
+            >
+              {renderCellContent(cell)}
+            </div>
+          );
+        })}
       </ResponsiveGridLayout>
 
       <footer style={{ marginTop: "2rem", textAlign: "center" }}>
         <hr />
         <p>© {new Date().getFullYear()} Todos los derechos reservados</p>
       </footer>
+
+      {/* TEMPORARY DEBUGGING: Render ReservationCell outside grid */}
+      {/* Uncomment this block to test the ReservationCell independently */}
+      {/*
+      <div style={{ 
+        marginTop: '50px', 
+        padding: '20px', 
+        border: '2px dashed red', 
+        background: '#f0f0f0', 
+        width: '400px', 
+        height: '600px', 
+        margin: 'auto'
+      }}>
+        <h3>Debug Reservation Cell (Outside Grid)</h3>
+        <ReservationCell cell={movableCells.find(c => c.i === '8')} />
+      </div>
+      */}
     </div>
   );
 };

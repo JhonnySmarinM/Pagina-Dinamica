@@ -274,6 +274,7 @@ img:hover {
   padding: 1%;
   margin: 1%;
   margin-bottom: 20px;
+  
   @media (max-width: 768px) {
     padding: 13px;
     margin: 1%;

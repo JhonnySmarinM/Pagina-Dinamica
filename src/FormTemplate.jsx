@@ -7,6 +7,9 @@ import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+// Importar IndexedDB utility functions
+import { saveData, loadData } from "./utils/indexedDB";
+
 // Importar estilos CSS para este componente (o generales)
 import "./App.css";
 
@@ -17,7 +20,7 @@ function FormTemplate({ data = null, gridLayout = null }) {
   const ResponsiveGridLayout = WidthProvider(Responsive);
 
   // Función para manejar la generación de la página y navegar a la vista previa
-  const handleGeneratePage = () => {
+  const handleGeneratePage = async () => {
     // Actualizar las celdas movibles con los datos actuales
     const updatedMovableCells = formData.movableCells.map(cell => {
       // Handle LOGO cell (cell 1)
@@ -102,19 +105,69 @@ function FormTemplate({ data = null, gridLayout = null }) {
       }
       // Handle FOTO/TEXTO 2 cell (cell 11)
       if (cell.i === '11') {
-         if (formData.fotoTexto2 && typeof formData.fotoTexto2 === 'string' && formData.fotoTexto2.startsWith('data:image')) {
-           return { ...cell, type: 'image', value: formData.fotoTexto2, content: cell.content };
-         } else {
-            return { ...cell, type: 'text', value: null, content: cell.content || 'FOTO/TEXTO 2' };
-         }
+        return {
+          ...cell,
+          type: 'fotoTexto',
+          content: 'FOTO/TEXTO 2',
+          value: {
+            image: formData.fotoTexto2 || '',
+            title: formData.fotoTexto2Title || '',
+            description: formData.fotoTexto2Description || '',
+            textColor: formData.fotoTexto2TextColor || '#FFFFFF',
+            fontFamily: formData.fotoTexto2FontFamily || 'Arial'
+          }
+        };
       }
       // Handle FOTO/TEXTO 3 cell (cell 12)
       if (cell.i === '12') {
-         if (formData.fotoTexto3 && typeof formData.fotoTexto3 === 'string' && formData.fotoTexto3.startsWith('data:image')) {
-           return { ...cell, type: 'image', value: formData.fotoTexto3, content: cell.content };
-         } else {
-            return { ...cell, type: 'text', value: null, content: cell.content || 'FOTO/TEXTO 3' };
-         }
+        return {
+          ...cell,
+          type: 'fotoTexto',
+          content: 'FOTO/TEXTO 3',
+          value: {
+            image: formData.fotoTexto3 || '',
+            title: formData.fotoTexto3Title || '',
+            description: formData.fotoTexto3Description || '',
+            textColor: formData.fotoTexto3TextColor || '#FFFFFF',
+            fontFamily: formData.fotoTexto3FontFamily || 'Arial'
+          }
+        };
+      }
+      // Handle VERTICAL CAROUSEL cell (cell 13)
+      if (cell.i === '13') {
+        return {
+          ...cell,
+          type: 'verticalCarousel',
+          content: 'CARRUSEL VERTICAL',
+          value: formData.carouselVerticalImages
+        };
+      }
+      // Handle HORIZONTAL CAROUSEL cell (cell 14)
+      if (cell.i === '14') {
+        return {
+          ...cell,
+          type: 'horizontalCarousel',
+          content: 'CARRUSEL HORIZONTAL',
+          value: formData.carouselHorizontalImages
+        };
+      }
+      // Handle VERTICAL CAROUSEL 2 cell (cell 15)
+      if (cell.i === '15') {
+        return {
+          ...cell,
+          type: 'verticalCarousel',
+          content: 'CARRUSEL VERTICAL 2',
+          value: formData.carouselVerticalImages2
+        };
+      }
+      // Handle HORIZONTAL CAROUSEL 2 cell (cell 16)
+      if (cell.i === '16') {
+        return {
+          ...cell,
+          type: 'horizontalCarousel',
+          content: 'CARRUSEL HORIZONTAL 2',
+          value: formData.carouselHorizontalImages2
+        };
       }
       // Handle PRODUCTOS Y SERVICIOS cell (cell 7)
       if (cell.i === '7') {
@@ -162,10 +215,16 @@ function FormTemplate({ data = null, gridLayout = null }) {
     });
 
     console.log('Guardando movableCells en handleGeneratePage:', updatedMovableCells);
-    // Guardar los datos actualizados en sessionStorage
-    window.sessionStorage.setItem('movableCells', JSON.stringify(updatedMovableCells));
-    window.sessionStorage.setItem('formData', JSON.stringify(formData));
+    // Guardar los datos actualizados en IndexedDB
+    try {
+      await saveData('movableCells', updatedMovableCells);
+      await saveData('formData', formData);
+      console.log('Datos guardados en IndexedDB correctamente.');
     navigate("/webtemplateCreate");
+    } catch (error) {
+      console.error('Error al guardar en IndexedDB:', error);
+      alert('Error al guardar la página. Demasiados datos. Por favor, contacta a soporte.');
+    }
   };
 
   // Obtener la URL current para extraer el ID si existe (para edición)
@@ -205,7 +264,7 @@ function FormTemplate({ data = null, gridLayout = null }) {
     services: selectedData?.services || [{ name: "Servicio 1", description: "Descripción del servicio 1", carouselImagesServicio: "" }],
     centralCarousel: selectedData?.centralCarousel || [{ image: "", description: "Descripción 1" }],
     emailClient: selectedData?.emailClient || "",
-    reservas: {
+    reservas: selectedData?.reservas || {
       titulo: "Reserva tu espacio",
       subtitulo: "¡Reserva ahora y asegura tu lugar!",
       tipoReserva: "cita",
@@ -226,6 +285,26 @@ function FormTemplate({ data = null, gridLayout = null }) {
     fotoTexto1Description: selectedData?.fotoTexto1Description || "",
     fotoTexto1TextColor: selectedData?.fotoTexto1TextColor || "#FFFFFF",
     fotoTexto1FontFamily: selectedData?.fotoTexto1FontFamily || "Arial",
+    // New fields for Foto/Texto 2
+    fotoTexto2: selectedData?.fotoTexto2 || "",
+    fotoTexto2Title: selectedData?.fotoTexto2Title || "",
+    fotoTexto2Description: selectedData?.fotoTexto2Description || "",
+    fotoTexto2TextColor: selectedData?.fotoTexto2TextColor || "#FFFFFF",
+    fotoTexto2FontFamily: selectedData?.fotoTexto2FontFamily || "Arial",
+    // New fields for Foto/Texto 3
+    fotoTexto3: selectedData?.fotoTexto3 || "",
+    fotoTexto3Title: selectedData?.fotoTexto3Title || "",
+    fotoTexto3Description: selectedData?.fotoTexto3Description || "",
+    fotoTexto3TextColor: selectedData?.fotoTexto3TextColor || "#FFFFFF",
+    fotoTexto3FontFamily: selectedData?.fotoTexto3FontFamily || "Arial",
+    // New field for Vertical Carousel Images (cell 13)
+    carouselVerticalImages: selectedData?.carouselVerticalImages || [],
+    // New field for Horizontal Carousel Images (cell 14)
+    carouselHorizontalImages: selectedData?.carouselHorizontalImages || [],
+    // New field for Vertical Carousel Images 2 (cell 15)
+    carouselVerticalImages2: selectedData?.carouselVerticalImages2 || [],
+    // New field for Horizontal Carousel Images 2 (cell 16)
+    carouselHorizontalImages2: selectedData?.carouselHorizontalImages2 || [],
     // Initialize movableCells with default structure, then potentially overwrite with loaded data
     movableCells: selectedData?.movableCells && Array.isArray(selectedData.movableCells) && selectedData.movableCells.length === 16 
       ? selectedData.movableCells 
@@ -283,7 +362,25 @@ function FormTemplate({ data = null, gridLayout = null }) {
   };
 
   // Manejador para carga de archivos (logo, backgroundImage)
-  const handleFileChange = (e, type) => {
+  const handleFileChange = (e, type, isMultiple = false) => {
+    if (isMultiple) {
+      const files = Array.from(e.target.files);
+      const readers = files.map((file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(readers).then((images) => {
+        setFormData((prevData) => ({
+          ...prevData,
+          [type]: [...prevData[type], ...images], // Append new images
+        }));
+      });
+    } else {
     const file = e.target.files[0];
     if (file) {
       const reader = new window.FileReader();
@@ -292,13 +389,13 @@ function FormTemplate({ data = null, gridLayout = null }) {
           ...prevData,
           [type]: reader.result,
         }));
-        // Forzar actualización del input file para que el evento change siempre se dispare
         if (e.target) {
           e.target.type = "";
           e.target.type = "file";
         }
       };
-      reader.readAsDataURL(file); // Leer el archivo como URL de datos (Base64)
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -656,40 +753,138 @@ function FormTemplate({ data = null, gridLayout = null }) {
     { id: "16", type: "text", value: (Array.isArray(formData.services) && formData.services[4] && formData.services[4].name) || "SLIDE 4", bgColor: "#B5EAD7" },
   ];
 
-  // Cuando el usuario sube un logo, actualiza la celda 1 del grid en tiempo real
+  // Load initial state from IndexedDB
   useEffect(() => {
-    // Si hay un logo en selectedData y no hay uno en formData, úsalo
-    if ((!formData.logo || formData.logo === "") && selectedData && selectedData.logo && selectedData.logo !== "") {
+    const loadInitialData = async () => {
+      const storedMovableCells = await loadData('movableCells');
+      const storedFormData = await loadData('formData');
+
+      let initialMovableCells = [
+        { i: '1', x: 0, y: 0, w: 1, h: 1, content: 'LOGO', bgColor: '#D3D3D3', type: 'text' },
+        { i: '2', x: 1, y: 0, w: 1, h: 1, content: 'REDES SOCIALES', bgColor: '#FFE4E1', type: 'social' },
+        { i: '3', x: 2, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 1', bgColor: '#A89C5D', type: 'text' },
+        { i: '4', x: 3, y: 0, w: 1, h: 1, content: 'PUBLICIDAD 2', bgColor: '#FFC300', type: 'text' },
+        { i: '5', x: 0, y: 1, w: 1, h: 1, content: 'VIDEO CORPORATIVO', bgColor: '#00BFFF', type: 'text' },
+        { i: '6', x: 1, y: 1, w: 1, h: 1, content: 'EMPRESA', bgColor: '#295A6D', type: 'text' },
+        { i: '7', x: 2, y: 1, w: 1, h: 1, content: 'PRODUCTOS Y SERVICIOS', bgColor: '#2B7A78', type: 'text' },
+        { i: '8', x: 3, y: 1, w: 1, h: 1, content: 'RESERVAS', bgColor: '#FF6F00', type: 'text' },
+        { i: '9', x: 0, y: 2, w: 1, h: 1, content: 'CALENDARIO', bgColor: '#FFFFFF', type: 'text' },
+        { i: '10', x: 1, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 1', bgColor: '#BDB89B', type: 'text' },
+        { i: '11', x: 2, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 2', bgColor: '#BDB89B', type: 'text' },
+        { i: '12', x: 3, y: 2, w: 1, h: 1, content: 'FOTO/TEXTO 3', bgColor: '#BDB89B', type: 'text' },
+        { i: '13', x: 0, y: 3, w: 1, h: 1, content: 'SLIDE 1', bgColor: '#FF8000', type: 'text' },
+        { i: '14', x: 1, y: 3, w: 1, h: 1, content: 'SLIDE 2', bgColor: '#FF8000', type: 'text' },
+        { i: '15', x: 2, y: 3, w: 1, h: 1, content: 'SLIDE 3', bgColor: '#FF8000', type: 'text' },
+        { i: '16', x: 3, y: 3, w: 1, h: 1, content: 'SLIDE 4', bgColor: '#FF8000', type: 'text' }
+      ]; // Use default movableCells here
+
+      let initialLayout = defaultLayout; // Assuming defaultLayout is defined elsewhere or will be loaded
+      let initialSocialLinks = {};
+      let initialFormData = {};
+
+      if (storedMovableCells) {
+        try {
+          const parsedCells = storedMovableCells;
+          // Validate cells structure basic check
+          if (Array.isArray(parsedCells) && parsedCells.length === initialMovableCells.length && parsedCells.every(cell => cell.i && cell.content && cell.bgColor)) {
+             initialMovableCells = parsedCells;
+          } else {
+             console.warn('Invalid movableCells data in IndexedDB. Using defaultMovableCells.');
+          }
+        } catch (error) {
+          console.error('Error parsing movableCells from IndexedDB. Using defaultMovableCells.', error);
+        }
+      }
+
+      if (storedFormData) {
+        try {
+          const parsedFormData = storedFormData;
+           initialFormData = parsedFormData;
+          // Guardar los enlaces sociales
+          if (parsedFormData.socialLinks) {
+            initialSocialLinks = parsedFormData.socialLinks;
+          }
+          // Update image cells based on loaded formData, clean up invalid image values
+          initialMovableCells = initialMovableCells.map(cell => {
+            if (cell.i === '1' && parsedFormData.logo && typeof parsedFormData.logo === 'string' && parsedFormData.logo.startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.logo, content: 'LOGO' };
+            }
+            if (cell.i === '3' && parsedFormData.carouselImages && Array.isArray(parsedFormData.carouselImages) && parsedFormData.carouselImages.length > 0 && typeof parsedFormData.carouselImages[0] === 'string' && parsedFormData.carouselImages[0].startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.carouselImages[0], content: cell.content };
+            }
+            if (cell.i === '4' && parsedFormData.carouselImages2 && Array.isArray(parsedFormData.carouselImages2) && parsedFormData.carouselImages2.length > 0 && typeof parsedFormData.carouselImages2[0] === 'string' && parsedFormData.carouselImages2[0].startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.carouselImages2[0], content: cell.content };
+            }
+            // Add checks for other image cells (10, 11, 12)
+             if (cell.i === '10' && parsedFormData.fotoTexto1 && typeof parsedFormData.fotoTexto1 === 'string' && parsedFormData.fotoTexto1.startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.fotoTexto1, content: cell.content };
+            }
+             if (cell.i === '11' && parsedFormData.fotoTexto2 && typeof parsedFormData.fotoTexto2 === 'string' && parsedFormData.fotoTexto2.startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.fotoTexto2, content: cell.content };
+            }
+             if (cell.i === '12' && parsedFormData.fotoTexto3 && typeof parsedFormData.fotoTexto3 === 'string' && parsedFormData.fotoTexto3.startsWith('data:image')) {
+              return { ...cell, type: 'image', value: parsedFormData.fotoTexto3, content: cell.content };
+            }
+            
+            // If cell type was image but value is invalid, revert to text
+            if (cell.type === 'image' && (!cell.value || typeof cell.value !== 'string' || !cell.value.startsWith('data:image'))) {
+                 console.warn(`Cell ${cell.i} had invalid image value. Reverting to text.`);
+                 return { ...cell, type: 'text', value: cell.content || 'CONTENIDO' }; // Revert to text content
+             }
+
+            return cell;
+          });
+        } catch (error) {
+          console.error('Error parsing formData from IndexedDB. Using default social links and image handling.', error);
+        }
+      }
+
+      // No initialLayout loading here as it's not strictly necessary for FormTemplate
+      // If layout is explicitly needed from IndexedDB here, it should be loaded separately.
+      // For now, only movableCells and formData are being loaded from IndexedDB.
+
+      setMovableCells(initialMovableCells); // Update movableCells state directly here
+      setSocialLinks(initialSocialLinks);
+
+      // Overwrite formData with loaded data if available, otherwise keep initial state
+      if (Object.keys(initialFormData).length > 0) {
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          ...initialFormData
+        }));
+      }
+    };
+
+    loadInitialData();
+  }, []);
+
+  // When the user uploads a logo, update cell 1 in real time (redundant with initial load, can be optimized)
+  useEffect(() => {
+    // This useEffect is primarily for real-time preview update, not initial load
+    // The initial load logic is now handled in the main useEffect with IndexedDB
+
+    // If there is a logo in formData, update the movableCells state for cell 1
+    if (formData.logo && formData.logo !== "") {
       setFormData((prevData) => ({
         ...prevData,
         movableCells: prevData.movableCells.map(cell =>
           (cell.i === '1' || cell.id === '1')
-            ? { ...cell, type: 'text', value: 'LOGO' }
-            : cell
-        )
-      }));
-    } else if (formData.logo && formData.logo !== "") {
-      // Si el usuario sube un logo, úsalo
-      setFormData((prevData) => ({
-        ...prevData,
-        movableCells: prevData.movableCells.map(cell =>
-          (cell.i === '1' || cell.id === '1')
-            ? { ...cell, type: 'image', value: formData.logo }
+            ? { ...cell, type: 'image', value: formData.logo } // Use 'image' type with value
             : cell
         )
       }));
     } else {
-      // Si no hay logo, muestra el texto 'LOGO'
+      // If no logo, show the text 'LOGO'
       setFormData((prevData) => ({
         ...prevData,
         movableCells: prevData.movableCells.map(cell =>
           (cell.i === '1' || cell.id === '1')
-            ? { ...cell, type: 'text', value: 'LOGO' }
+            ? { ...cell, type: 'text', value: 'LOGO' } // Use 'text' type with content
             : cell
         )
       }));
     }
-  }, [formData.logo, selectedData && selectedData.logo]);
+  }, [formData.logo]); // Re-run effect if formData.logo changes
 
   // Estado para mostrar validación visual de logo subido
   const [logoUploaded, setLogoUploaded] = useState(false);
@@ -709,7 +904,7 @@ function FormTemplate({ data = null, gridLayout = null }) {
     }))
   }), [formData.movableCells]);
 
-  const handlePreviewLayoutChange = (newLayout) => {
+  const handlePreviewLayoutChange = async (newLayout) => {
     const updatedCells = formData.movableCells.map(cell => {
       const layoutItem = newLayout.find(item => item.i === cell.i);
       if (layoutItem) {
@@ -730,12 +925,13 @@ function FormTemplate({ data = null, gridLayout = null }) {
       movableCells: updatedCells 
     }));
 
-    // Guardar en sessionStorage
+    // Guardar en IndexedDB
     try {
-      window.sessionStorage.setItem('movableCells', JSON.stringify(updatedCells));
-      console.log('Celdas movibles guardadas correctamente:', updatedCells);
+      await saveData('movableCells', updatedCells);
+      console.log('Celdas movibles guardadas en IndexedDB correctamente desde preview.');
     } catch (error) {
-      console.error('Error al guardar las celdas movibles:', error);
+      console.error('Error al guardar las celdas movibles desde preview:', error);
+      alert('Error al guardar la vista previa. Demasiados datos.');
     }
   };
 
@@ -855,16 +1051,16 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </h2>
           {activeAccordion === "infoGeneral" && (
             <>
-              <label htmlFor="title">Título de la Página:</label>
-              <input className="inputcontainer" type="text" id="title" name="title" value={formData.title} onChange={handleChange} />
-              <label htmlFor="businessType">Tipo de Negocio:</label>
-              <input className="inputcontainer" type="text" id="businessType" name="businessType" value={formData.businessType} onChange={handleChange} />
-              <label htmlFor="address">Dirección:</label>
-              <input className="inputcontainer" type="text" id="address" name="address" value={formData.address} onChange={handleChange} />
-              <label htmlFor="phone">Teléfono:</label>
-              <input className="inputcontainer" type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} />
-              <label htmlFor="email">Correo Electrónico:</label>
-              <input className="inputcontainer" type="email" id="email" name="email" value={formData.email} onChange={handleChange} />
+          <label htmlFor="title">Título de la Página:</label>
+          <input className="inputcontainer" type="text" id="title" name="title" value={formData.title} onChange={handleChange} />
+          <label htmlFor="businessType">Tipo de Negocio:</label>
+          <input className="inputcontainer" type="text" id="businessType" name="businessType" value={formData.businessType} onChange={handleChange} />
+          <label htmlFor="address">Dirección:</label>
+          <input className="inputcontainer" type="text" id="address" name="address" value={formData.address} onChange={handleChange} />
+          <label htmlFor="phone">Teléfono:</label>
+          <input className="inputcontainer" type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} />
+          <label htmlFor="email">Correo Electrónico:</label>
+          <input className="inputcontainer" type="email" id="email" name="email" value={formData.email} onChange={handleChange} />
             </>
           )}
 
@@ -883,50 +1079,50 @@ function FormTemplate({ data = null, gridLayout = null }) {
             </label>
           </h2>
           {activeAccordion === "logoUpload" && (
-            <div style={{ marginBottom: "20px" }}>
-              <input 
-                type="file" 
-                id="logo" 
-                accept="image/*" 
-                onChange={(e) => {
-                  handleFileChange(e, "logo");
-                  setLogoUploaded(true);
-                }}
-                style={{ marginBottom: "10px" }}
-              />
-              {formData.logo && typeof formData.logo === 'string' && formData.logo.trim() !== '' && (
-                <div style={{ 
-                  marginTop: "10px",
-                  padding: "10px",
-                  border: "1px solid #ddd",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  width: "200px",
-                  height: "200px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}>
-                  <img 
-                    src={formData.logo} 
-                    alt="Logo Preview" 
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      display: "block",
-                      background: "#fff"
-                    }}
-                    onError={e => { e.target.style.display = 'none'; }}
-                  />
-                </div>
-              )}
-              {logoUploaded && (
-                <div style={{ color: 'green', marginTop: 8, fontWeight: 'bold' }}>
-                  ¡Logo subido correctamente!
-                </div>
-              )}
-            </div>
+          <div style={{ marginBottom: "20px" }}>
+            <input 
+              type="file" 
+              id="logo" 
+              accept="image/*" 
+              onChange={(e) => {
+                handleFileChange(e, "logo");
+                setLogoUploaded(true);
+              }}
+              style={{ marginBottom: "10px" }}
+            />
+            {formData.logo && typeof formData.logo === 'string' && formData.logo.trim() !== '' && (
+              <div style={{ 
+                marginTop: "10px",
+                padding: "10px",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                backgroundColor: "#fff",
+                width: "200px",
+                height: "200px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <img 
+                  src={formData.logo} 
+                  alt="Logo Preview" 
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    display: "block",
+                    background: "#fff"
+                  }}
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+              </div>
+            )}
+            {logoUploaded && (
+              <div style={{ color: 'green', marginTop: 8, fontWeight: 'bold' }}>
+                ¡Logo subido correctamente!
+              </div>
+            )}
+          </div>
           )}
 
           {/* Redes Sociales */}
@@ -945,24 +1141,24 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </h2>
           {activeAccordion === "socialLinks" && (
             <>
-              <label htmlFor="whatsapp">WhatsApp:</label>
-              <input className="inputcontainer" type="text" id="whatsapp" name="whatsapp" placeholder="https://wa.me/" value={formData.socialLinks.whatsapp} onChange={handleSocialChange} />
-              <label htmlFor="facebook">Facebook:</label>
-              <input className="inputcontainer" type="text" id="facebook" name="facebook" placeholder="https://facebook.com/" value={formData.socialLinks.facebook} onChange={handleSocialChange} />
-              <label htmlFor="instagram">Instagram:</label>
-              <input className="inputcontainer" type="text" id="instagram" name="instagram" placeholder="https://instagram.com/" value={formData.socialLinks.instagram} onChange={handleSocialChange} />
-              <label htmlFor="twitter">X / Twitter:</label>
-              <input className="inputcontainer" type="text" id="twitter" name="twitter" placeholder="https://twitter.com/" value={formData.socialLinks.twitter} onChange={handleSocialChange} />
-              <label htmlFor="pinterest">Pinterest:</label>
-              <input className="inputcontainer" type="text" id="pinterest" name="pinterest" placeholder="https://pinterest.com/" value={formData.socialLinks.pinterest} onChange={handleSocialChange} />
-              <label htmlFor="youtube">YouTube:</label>
-              <input className="inputcontainer" type="text" id="youtube" name="youtube" placeholder="https://youtube.com/" value={formData.socialLinks.youtube} onChange={handleSocialChange} />
-              <label htmlFor="linkedin">LinkedIn:</label>
-              <input className="inputcontainer" type="text" id="linkedin" name="linkedin" placeholder="https://linkedin.com/" value={formData.socialLinks.linkedin} onChange={handleSocialChange} />
-              <label htmlFor="tiktok">TikTok:</label>
-              <input className="inputcontainer" type="text" id="tiktok" name="tiktok" placeholder="https://tiktok.com/" value={formData.socialLinks.tiktok} onChange={handleSocialChange} />
-              <label htmlFor="gmail">Gmail:</label>
-              <input className="inputcontainer" type="text" id="gmail" name="gmail" placeholder="mailto:example@gmail.com" value={formData.socialLinks.gmail || ''} onChange={handleSocialChange} />
+          <label htmlFor="whatsapp">WhatsApp:</label>
+          <input className="inputcontainer" type="text" id="whatsapp" name="whatsapp" placeholder="https://wa.me/" value={formData.socialLinks.whatsapp} onChange={handleSocialChange} />
+          <label htmlFor="facebook">Facebook:</label>
+          <input className="inputcontainer" type="text" id="facebook" name="facebook" placeholder="https://facebook.com/" value={formData.socialLinks.facebook} onChange={handleSocialChange} />
+          <label htmlFor="instagram">Instagram:</label>
+          <input className="inputcontainer" type="text" id="instagram" name="instagram" placeholder="https://instagram.com/" value={formData.socialLinks.instagram} onChange={handleSocialChange} />
+          <label htmlFor="twitter">X / Twitter:</label>
+          <input className="inputcontainer" type="text" id="twitter" name="twitter" placeholder="https://twitter.com/" value={formData.socialLinks.twitter} onChange={handleSocialChange} />
+          <label htmlFor="pinterest">Pinterest:</label>
+          <input className="inputcontainer" type="text" id="pinterest" name="pinterest" placeholder="https://pinterest.com/" value={formData.socialLinks.pinterest} onChange={handleSocialChange} />
+          <label htmlFor="youtube">YouTube:</label>
+          <input className="inputcontainer" type="text" id="youtube" name="youtube" placeholder="https://youtube.com/" value={formData.socialLinks.youtube} onChange={handleSocialChange} />
+          <label htmlFor="linkedin">LinkedIn:</label>
+          <input className="inputcontainer" type="text" id="linkedin" name="linkedin" placeholder="https://linkedin.com/" value={formData.socialLinks.linkedin} onChange={handleSocialChange} />
+          <label htmlFor="tiktok">TikTok:</label>
+          <input className="inputcontainer" type="text" id="tiktok" name="tiktok" placeholder="https://tiktok.com/" value={formData.socialLinks.tiktok} onChange={handleSocialChange} />
+          <label htmlFor="gmail">Gmail:</label>
+          <input className="inputcontainer" type="text" id="gmail" name="gmail" placeholder="mailto:example@gmail.com" value={formData.socialLinks.gmail || ''} onChange={handleSocialChange} />
             </>
           )}
 
@@ -982,16 +1178,16 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </h2>
           {activeAccordion === "carousel1" && (
             <>
-              <input type="file" id="carouselImages1" accept="image/*" multiple onChange={handleCarouselImagesChange} />
-              <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-                {formData.carouselImages.map((img, i) => (
-                  !!img && typeof img === 'string' && img.startsWith('data:image') && (
-                    <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src={img} alt="pub1" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
-                    </div>
-                  )
-                ))}
-              </div>
+          <input type="file" id="carouselImages1" accept="image/*" multiple onChange={handleCarouselImagesChange} />
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+            {formData.carouselImages.map((img, i) => (
+              !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={img} alt="pub1" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                </div>
+              )
+            ))}
+          </div>
             </>
           )}
 
@@ -1011,16 +1207,16 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </h2>
           {activeAccordion === "carousel2" && (
             <>
-              <input type="file" id="carouselImages2" accept="image/*" multiple onChange={handleCarouselImagesChange2} />
-              <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-                {formData.carouselImages2.map((img, i) => (
-                  !!img && typeof img === 'string' && img.startsWith('data:image') && (
-                    <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src={img} alt="pub2" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
-                    </div>
-                  )
-                ))}
-              </div>
+          <input type="file" id="carouselImages2" accept="image/*" multiple onChange={handleCarouselImagesChange2} />
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+            {formData.carouselImages2.map((img, i) => (
+              !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={img} alt="pub2" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                </div>
+              )
+            ))}
+          </div>
             </>
           )}
 
@@ -1039,70 +1235,70 @@ function FormTemplate({ data = null, gridLayout = null }) {
             </label>
           </h2>
           {activeAccordion === "videoUpload" && (
-            <div style={{ marginBottom: "20px" }}>
-              <label htmlFor="videoUrl">URL del Video (YouTube o Vimeo):</label>
+          <div style={{ marginBottom: "20px" }}>
+            <label htmlFor="videoUrl">URL del Video (YouTube o Vimeo):</label>
+            <input 
+              className="inputcontainer" 
+              type="text" 
+              id="videoUrl" 
+              name="videoUrl" 
+              placeholder="https://www.youtube.com/watch?v=..." 
+              value={formData.videoUrl || ''} 
+              onChange={handleVideoUrlChange} 
+            />
+            
+            <div style={{ marginTop: "10px" }}>
+              <label htmlFor="videoFile">O sube un archivo de video:</label>
               <input 
-                className="inputcontainer" 
-                type="text" 
-                id="videoUrl" 
-                name="videoUrl" 
-                placeholder="https://www.youtube.com/watch?v=..." 
-                value={formData.videoUrl || ''} 
-                onChange={handleVideoUrlChange} 
+                type="file" 
+                id="videoFile" 
+                accept="video/*" 
+                onChange={handleVideoFileChange}
+                style={{ marginTop: "5px" }}
               />
-              
-              <div style={{ marginTop: "10px" }}>
-                <label htmlFor="videoFile">O sube un archivo de video:</label>
-                <input 
-                  type="file" 
-                  id="videoFile" 
-                  accept="video/*" 
-                  onChange={handleVideoFileChange}
-                  style={{ marginTop: "5px" }}
-                />
-                <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
-                  Formatos aceptados: MP4, WebM, Ogg. Tamaño máximo: 100MB
-                </small>
-              </div>
-
-              {(formData.videoUrl || formData.videoFile) && (
-                <div style={{ 
-                  marginTop: "15px", 
-                  padding: "10px", 
-                  border: "1px solid #ddd", 
-                  borderRadius: "8px", 
-                  backgroundColor: "#fff" 
-                }}>
-                  <h4 style={{ marginBottom: "10px" }}>Vista previa:</h4>
-                  {formData.videoUrl ? (
-                    <iframe
-                      width="100%"
-                      height="315"
-                      src={formData.videoUrl.includes('youtube.com') || formData.videoUrl.includes('youtu.be')
-                        ? `https://www.youtube.com/embed/${formData.videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i)?.[1]}`
-                        : formData.videoUrl.includes('vimeo.com')
-                        ? `https://player.vimeo.com/video/${formData.videoUrl.match(/(?:vimeo\.com\/)(\d+)/i)?.[1]}`
-                        : formData.videoUrl}
-                      title="Video Preview"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      style={{ borderRadius: "4px" }}
-                    />
-                  ) : (
-                    <video
-                      controls
-                      width="100%"
-                      height="315"
-                      src={formData.videoFile}
-                      style={{ borderRadius: "4px" }}
-                    >
-                      Tu navegador no soporta el elemento de video.
-                    </video>
-                  )}
-                </div>
-              )}
+              <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
+                Formatos aceptados: MP4, WebM, Ogg. Tamaño máximo: 100MB
+              </small>
             </div>
+
+            {(formData.videoUrl || formData.videoFile) && (
+              <div style={{ 
+                marginTop: "15px", 
+                padding: "10px", 
+                border: "1px solid #ddd", 
+                borderRadius: "8px", 
+                backgroundColor: "#fff" 
+              }}>
+                <h4 style={{ marginBottom: "10px" }}>Vista previa:</h4>
+                {formData.videoUrl ? (
+                  <iframe
+                    width="100%"
+                    height="315"
+                    src={formData.videoUrl.includes('youtube.com') || formData.videoUrl.includes('youtu.be')
+                      ? `https://www.youtube.com/embed/${formData.videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i)?.[1]}`
+                      : formData.videoUrl.includes('vimeo.com')
+                      ? `https://player.vimeo.com/video/${formData.videoUrl.match(/(?:vimeo\.com\/)(\d+)/i)?.[1]}`
+                      : formData.videoUrl}
+                    title="Video Preview"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{ borderRadius: "4px" }}
+                  />
+                ) : (
+                  <video
+                    controls
+                    width="100%"
+                    height="315"
+                    src={formData.videoFile}
+                    style={{ borderRadius: "4px" }}
+                  >
+                    Tu navegador no soporta el elemento de video.
+                  </video>
+                )}
+              </div>
+            )}
+          </div>
           )}
 
           {/* Servicios */}
@@ -1121,23 +1317,23 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </h2>
           {activeAccordion === "services" && (
             <>
-              {formData.services.map((service, index) => (
-                <div key={index} style={{border: '1px solid #ccc', marginBottom: 8, padding: 8}}>
-                  <label>Nombre:</label>
-                  <input type="text" name="name" value={service.name} onChange={e => handleServiceChange(index, e)} />
-                  <label>Descripción:</label>
-                  <textarea name="description" value={service.description} onChange={e => handleServiceChange(index, e)} />
-                  <label>Imagen:</label>
-                  <input type="file" accept="image/*" onChange={e => handleServiceImageChange(index, e)} />
-                  {service.carouselImagesServicio && typeof service.carouselImagesServicio === 'string' && service.carouselImagesServicio.startsWith('data:image') && (
-                    <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
-                      <img src={service.carouselImagesServicio} alt="servicio" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
-                    </div>
-                  )}
-                  <button type="button" onClick={() => removeService(index)}>Eliminar</button>
+          {formData.services.map((service, index) => (
+            <div key={index} style={{border: '1px solid #ccc', marginBottom: 8, padding: 8}}>
+              <label>Nombre:</label>
+              <input type="text" name="name" value={service.name} onChange={e => handleServiceChange(index, e)} />
+              <label>Descripción:</label>
+              <textarea name="description" value={service.description} onChange={e => handleServiceChange(index, e)} />
+              <label>Imagen:</label>
+              <input type="file" accept="image/*" onChange={e => handleServiceImageChange(index, e)} />
+              {service.carouselImagesServicio && typeof service.carouselImagesServicio === 'string' && service.carouselImagesServicio.startsWith('data:image') && (
+                <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
+                  <img src={service.carouselImagesServicio} alt="servicio" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
                 </div>
-              ))}
-              <button type="button" onClick={addService}>Agregar Servicio</button>
+              )}
+              <button type="button" onClick={() => removeService(index)}>Eliminar</button>
+            </div>
+          ))}
+          <button type="button" onClick={addService}>Agregar Servicio</button>
             </>
           )}
 
@@ -1157,18 +1353,18 @@ function FormTemplate({ data = null, gridLayout = null }) {
           </h2>
           {activeAccordion === "calendar" && (
             <div style={{ marginBottom: "20px" }}>
-              <label>Selecciona un calendario:</label>
+          <label>Selecciona un calendario:</label>
               <select 
                 name="calendario" 
                 value={formData.calendario} 
                 onChange={handleChange}
                 style={{ marginBottom: "10px" }}
               >
-                <option value="">Selecciona...</option>
-                <option value="google">Google Calendar</option>
-                <option value="outlook">Outlook</option>
-                <option value="ical">iCal</option>
-              </select>
+            <option value="">Selecciona...</option>
+            <option value="google">Google Calendar</option>
+            <option value="outlook">Outlook</option>
+            <option value="ical">iCal</option>
+          </select>
 
               {formData.calendario && (
                 <div>
@@ -1317,15 +1513,92 @@ function FormTemplate({ data = null, gridLayout = null }) {
             </label>
           </h2>
           {activeAccordion === "fotoTexto2" && (
-            <>
-              <input type="file" name="fotoTexto2" accept="image/*" onChange={e => handleFileChange(e, "fotoTexto2")}/>
-              <input type="text" name="texto2" placeholder="Texto 2" value={formData.texto2 || ''} onChange={handleChange} />
-              {formData.fotoTexto2 && typeof formData.fotoTexto2 === 'string' && formData.fotoTexto2.startsWith('data:image') && (
-                <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
-                  <img src={formData.fotoTexto2} alt="foto2" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
-                </div>
-              )}
-            </>
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ marginBottom: "10px" }}>
+                <label>Imagen:</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'fotoTexto2')}
+                  style={{ marginTop: "5px" }}
+                />
+                {formData.fotoTexto2 && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img 
+                      src={formData.fotoTexto2} 
+                      alt="Vista previa" 
+                      style={{ maxWidth: "200px", maxHeight: "200px" }} 
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginBottom: "10px" }}>
+                <label>Título:</label>
+                <input
+                  type="text"
+                  name="fotoTexto2Title"
+                  value={formData.fotoTexto2Title}
+                  onChange={handleChange}
+                  placeholder="Ingrese el título"
+                  style={{ marginTop: "5px", width: "100%" }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: "10px" }}>
+                <label>Descripción:</label>
+                <textarea
+                  name="fotoTexto2Description"
+                  value={formData.fotoTexto2Description}
+                  onChange={handleChange}
+                  placeholder="Ingrese la descripción"
+                  style={{ 
+                    marginTop: "5px", 
+                    width: "100%", 
+                    minHeight: "100px",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc"
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: "10px" }}>
+                <label>Color del texto:</label>
+                <input
+                  type="color"
+                  name="fotoTexto2TextColor"
+                  value={formData.fotoTexto2TextColor}
+                  onChange={handleChange}
+                  style={{ marginTop: "5px" }}
+                />
+              </div>
+
+              <div style={{ marginBottom: "10px" }}>
+                <label>Fuente del texto:</label>
+                <select
+                  name="fotoTexto2FontFamily"
+                  value={formData.fotoTexto2FontFamily}
+                  onChange={handleChange}
+                  style={{ 
+                    marginTop: "5px",
+                    width: "100%",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc"
+                  }}
+                >
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Times New Roman">Times New Roman</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Verdana">Verdana</option>
+                  <option value="Courier New">Courier New</option>
+                  <option value="Impact">Impact</option>
+                  <option value="Comic Sans MS">Comic Sans MS</option>
+                </select>
+              </div>
+            </div>
           )}
 
           {/* Subir Foto/Texto 3 */}
@@ -1343,15 +1616,248 @@ function FormTemplate({ data = null, gridLayout = null }) {
             </label>
           </h2>
           {activeAccordion === "fotoTexto3" && (
-            <>
-              <input type="file" name="fotoTexto3" accept="image/*" onChange={e => handleFileChange(e, "fotoTexto3")}/>
-              <input type="text" name="texto3" placeholder="Texto 3" value={formData.texto3 || ''} onChange={handleChange} />
-              {formData.fotoTexto3 && typeof formData.fotoTexto3 === 'string' && formData.fotoTexto3.startsWith('data:image') && (
-                <div style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 }}>
-                  <img src={formData.fotoTexto3} alt="foto3" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
-                </div>
-              )}
-            </>
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ marginBottom: "10px" }}>
+                <label>Imagen:</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'fotoTexto3')}
+                  style={{ marginTop: "5px" }}
+                />
+                {formData.fotoTexto3 && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img 
+                      src={formData.fotoTexto3} 
+                      alt="Vista previa" 
+                      style={{ maxWidth: "200px", maxHeight: "200px" }} 
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginBottom: "10px" }}>
+                <label>Título:</label>
+                <input
+                  type="text"
+                  name="fotoTexto3Title"
+                  value={formData.fotoTexto3Title}
+                  onChange={handleChange}
+                  placeholder="Ingrese el título"
+                  style={{ marginTop: "5px", width: "100%" }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: "10px" }}>
+                <label>Descripción:</label>
+                <textarea
+                  name="fotoTexto3Description"
+                  value={formData.fotoTexto3Description}
+                  onChange={handleChange}
+                  placeholder="Ingrese la descripción"
+                  style={{ 
+                    marginTop: "5px", 
+                    width: "100%", 
+                    minHeight: "100px",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc"
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: "10px" }}>
+                <label>Color del texto:</label>
+                <input
+                  type="color"
+                  name="fotoTexto3TextColor"
+                  value={formData.fotoTexto3TextColor}
+                  onChange={handleChange}
+                  style={{ marginTop: "5px" }}
+                />
+              </div>
+
+              <div style={{ marginBottom: "10px" }}>
+                <label>Fuente del texto:</label>
+                <select
+                  name="fotoTexto3FontFamily"
+                  value={formData.fotoTexto3FontFamily}
+                  onChange={handleChange}
+                  style={{ 
+                    marginTop: "5px",
+                    width: "100%",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc"
+                  }}
+                >
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Times New Roman">Times New Roman</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Verdana">Verdana</option>
+                  <option value="Courier New">Courier New</option>
+                  <option value="Impact">Impact</option>
+                  <option value="Comic Sans MS">Comic Sans MS</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Carrusel Vertical (Celda 13) */}
+          <h2 className="switchcontainer">
+            Carrusel Vertical
+            <label className="toggle-switch" style={{ marginLeft: "10px" }}>
+              <input
+                type="checkbox"
+                checked={activeAccordion === "verticalCarousel"}
+                onChange={() => toggleAccordion("verticalCarousel")}
+              />
+              <div>
+                <span className="slider"></span>
+              </div>
+            </label>
+          </h2>
+          {activeAccordion === "verticalCarousel" && (
+            <div style={{ marginBottom: "20px" }}>
+              <label>Imágenes para el Carrusel Vertical:</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleFileChange(e, 'carouselVerticalImages', true)}
+                style={{ marginTop: "5px" }}
+              />
+              <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
+                Puedes seleccionar varias imágenes.
+              </small>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: '10px' }}>
+                {formData.carouselVerticalImages.map((img, i) => (
+                  !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                    <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={img} alt={`Vertical Carousel ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Carrusel Horizontal (Celda 14) */}
+          <h2 className="switchcontainer">
+            Carrusel Horizontal
+            <label className="toggle-switch" style={{ marginLeft: "10px" }}>
+              <input
+                type="checkbox"
+                checked={activeAccordion === "horizontalCarousel"}
+                onChange={() => toggleAccordion("horizontalCarousel")}
+              />
+              <div>
+                <span className="slider"></span>
+              </div>
+            </label>
+          </h2>
+          {activeAccordion === "horizontalCarousel" && (
+            <div style={{ marginBottom: "20px" }}>
+              <label>Imágenes para el Carrusel Horizontal:</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleFileChange(e, 'carouselHorizontalImages', true)}
+                style={{ marginTop: "5px" }}
+              />
+              <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
+                Puedes seleccionar varias imágenes.
+              </small>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: '10px' }}>
+                {formData.carouselHorizontalImages.map((img, i) => (
+                  !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                    <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={img} alt={`Horizontal Carousel ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Carrusel Vertical 2 (Celda 15) */}
+          <h2 className="switchcontainer">
+            Carrusel Vertical 2
+            <label className="toggle-switch" style={{ marginLeft: "10px" }}>
+              <input
+                type="checkbox"
+                checked={activeAccordion === "verticalCarousel2"}
+                onChange={() => toggleAccordion("verticalCarousel2")}
+              />
+              <div>
+                <span className="slider"></span>
+              </div>
+            </label>
+          </h2>
+          {activeAccordion === "verticalCarousel2" && (
+            <div style={{ marginBottom: "20px" }}>
+              <label>Imágenes para el Carrusel Vertical 2:</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleFileChange(e, 'carouselVerticalImages2', true)}
+                style={{ marginTop: "5px" }}
+              />
+              <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
+                Puedes seleccionar varias imágenes.
+              </small>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: '10px' }}>
+                {formData.carouselVerticalImages2.map((img, i) => (
+                  !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                    <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={img} alt={`Vertical Carousel 2 ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Carrusel Horizontal 2 (Celda 16) */}
+          <h2 className="switchcontainer">
+            Carrusel Horizontal 2
+            <label className="toggle-switch" style={{ marginLeft: "10px" }}>
+              <input
+                type="checkbox"
+                checked={activeAccordion === "horizontalCarousel2"}
+                onChange={() => toggleAccordion("horizontalCarousel2")}
+              />
+              <div>
+                <span className="slider"></span>
+              </div>
+            </label>
+          </h2>
+          {activeAccordion === "horizontalCarousel2" && (
+            <div style={{ marginBottom: "20px" }}>
+              <label>Imágenes para el Carrusel Horizontal 2:</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleFileChange(e, 'carouselHorizontalImages2', true)}
+                style={{ marginTop: "5px" }}
+              />
+              <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
+                Puedes seleccionar varias imágenes.
+              </small>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: '10px' }}>
+                {formData.carouselHorizontalImages2.map((img, i) => (
+                  !!img && typeof img === 'string' && img.startsWith('data:image') && (
+                    <div key={i} style={{ width: 80, height: 80, background: '#fff', border: '1px solid #ddd', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={img} alt={`Horizontal Carousel 2 ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
           )}
 
           <div style={{ marginTop: "20px", textAlign: "center" }}>
