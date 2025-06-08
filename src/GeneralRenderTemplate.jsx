@@ -49,6 +49,321 @@ const defaultMovableCells = [
   { i: "16", content: "SLIDE 4", bgColor: "#B5EAD7" },
 ];
 
+const ReservationCell = ({ cell }) => {
+  const [showReservationForm, setShowReservationForm] = useState(false);
+  const [reservationData, setReservationData] = useState({
+    nombre: '',
+    email: '',
+    telefono: '',
+    fecha: '',
+    hora: '',
+    personas: '1',
+    notas: ''
+  });
+
+  const handleReservationSubmit = (e) => {
+    e.preventDefault();
+    alert(cell.value.mensajeConfirmacion);
+    setShowReservationForm(false);
+    setReservationData({
+      nombre: '',
+      email: '',
+      telefono: '',
+      fecha: '',
+      hora: '',
+      personas: '1',
+      notas: ''
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setReservationData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  return (
+    <div style={{
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "stretch",
+      justifyContent: "flex-start",
+      gap: "4px",
+      padding: "8px",
+      background: `linear-gradient(135deg, ${cell.value.colorFondo}, ${cell.value.colorBoton})`,
+      borderRadius: "8px",
+      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+      overflow: "hidden",
+      minHeight: "0",
+      flex: "1 1 auto",
+      position: "relative"
+    }}>
+      {!showReservationForm ? (
+        <>
+          <h3 style={{ 
+            margin: "0", 
+            color: "#FFFFFF", 
+            fontSize: "clamp(0.8rem, 2vw, 1.2rem)", 
+            textAlign: "center",
+            textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+            lineHeight: "1.2",
+            padding: "2px 0",
+            flex: "0 0 auto"
+          }}>
+            {cell.value.titulo}
+          </h3>
+          <p style={{
+            margin: "0",
+            fontSize: "clamp(0.7rem, 1.5vw, 0.9rem)",
+            textAlign: "center",
+            color: "#FFFFFF",
+            marginBottom: "8px"
+          }}>
+            {cell.value.subtitulo}
+          </p>
+          <div style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: "8px",
+            width: "100%",
+            flex: "1 1 auto",
+            overflow: "auto",
+            minHeight: "0"
+          }}>
+            <div style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
+            }}>
+              <i className="fas fa-clock" style={{ color: "#FFD700", flexShrink: "0" }}></i>
+              <div style={{ fontSize: "0.9em", color: "#FFFFFF" }}>
+                <div style={{ fontWeight: "bold" }}>Horario de Atención:</div>
+                <div>{cell.value.horarioAtencion.dias.join(", ")}</div>
+                <div>{cell.value.horarioAtencion.horario}</div>
+              </div>
+            </div>
+            <div style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
+            }}>
+              <i className="fas fa-info-circle" style={{ color: "#FFD700", flexShrink: "0" }}></i>
+              <div style={{ fontSize: "0.9em", color: "#FFFFFF" }}>
+                <div>Duración: {cell.value.duracionCita} minutos</div>
+                <div>Capacidad: {cell.value.capacidadMaxima} personas</div>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowReservationForm(true)}
+              style={{
+                backgroundColor: cell.value.colorBoton,
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "4px",
+                padding: "8px 16px",
+                fontSize: "1rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                marginTop: "auto",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+              }}
+            >
+              <i className="fas fa-calendar-plus" style={{ marginRight: "6px" }}></i>
+              Reservar Ahora
+            </button>
+          </div>
+        </>
+      ) : (
+        <form 
+          onSubmit={handleReservationSubmit}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+            height: "100%",
+            overflow: "auto"
+          }}
+        >
+          <h3 style={{ 
+            margin: "0", 
+            color: "#FFFFFF", 
+            fontSize: "1.1rem", 
+            textAlign: "center",
+            textShadow: "2px 2px 4px rgba(0,0,0,0.2)"
+          }}>
+            Formulario de Reserva
+          </h3>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <input
+              type="text"
+              name="nombre"
+              value={reservationData.nombre}
+              onChange={handleInputChange}
+              placeholder="Nombre completo"
+              required
+              style={{
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                fontSize: "0.9rem"
+              }}
+            />
+            
+            <input
+              type="email"
+              name="email"
+              value={reservationData.email}
+              onChange={handleInputChange}
+              placeholder="Correo electrónico"
+              required
+              style={{
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                fontSize: "0.9rem"
+              }}
+            />
+            
+            <input
+              type="tel"
+              name="telefono"
+              value={reservationData.telefono}
+              onChange={handleInputChange}
+              placeholder="Teléfono"
+              required
+              style={{
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                fontSize: "0.9rem"
+              }}
+            />
+            
+            <input
+              type="date"
+              name="fecha"
+              value={reservationData.fecha}
+              onChange={handleInputChange}
+              required
+              style={{
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                fontSize: "0.9rem"
+              }}
+            />
+            
+            <input
+              type="time"
+              name="hora"
+              value={reservationData.hora}
+              onChange={handleInputChange}
+              required
+              style={{
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                fontSize: "0.9rem"
+              }}
+            />
+            
+            <select
+              name="personas"
+              value={reservationData.personas}
+              onChange={handleInputChange}
+              required
+              style={{
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                fontSize: "0.9rem"
+              }}
+            >
+              {[...Array(parseInt(cell.value.capacidadMaxima))].map((_, i) => (
+                <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'persona' : 'personas'}</option>
+              ))}
+            </select>
+            
+            <textarea
+              name="notas"
+              value={reservationData.notas}
+              onChange={handleInputChange}
+              placeholder="Notas adicionales (opcional)"
+              style={{
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                fontSize: "0.9rem",
+                minHeight: "60px",
+                resize: "vertical"
+              }}
+            />
+          </div>
+          
+          <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
+            <button
+              type="button"
+              onClick={() => setShowReservationForm(false)}
+              style={{
+                flex: 1,
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "rgba(255,255,255,0.2)",
+                color: "#FFFFFF",
+                cursor: "pointer",
+                fontSize: "0.9rem"
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              style={{
+                flex: 1,
+                padding: "8px",
+                borderRadius: "4px",
+                border: "none",
+                backgroundColor: cell.value.colorBoton,
+                color: "#FFFFFF",
+                cursor: "pointer",
+                fontSize: "0.9rem",
+                fontWeight: "bold"
+              }}
+            >
+              Confirmar Reserva
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+};
+
 const GeneralRenderTemplate = () => {
   const [movableCells, setMovableCells] = useState(defaultMovableCells);
   const [layout, setLayout] = useState(defaultLayout);
@@ -261,7 +576,7 @@ const GeneralRenderTemplate = () => {
           overflow: "hidden",
           padding: "0.5rem"
         }}>
-          {embedUrl ? (
+          {cell.videoType === 'url' && embedUrl ? (
             <iframe
               key={`${cellKey}-iframe`}
               width="100%"
@@ -276,7 +591,7 @@ const GeneralRenderTemplate = () => {
                 boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
               }}
             />
-          ) : cell.value.startsWith('data:video') ? (
+          ) : cell.videoType === 'file' && cell.value.startsWith('data:video') ? (
             <video
               key={`${cellKey}-video`}
               width="100%"
@@ -302,6 +617,425 @@ const GeneralRenderTemplate = () => {
               {cell.content}
             </div>
           )}
+        </div>
+      );
+    }
+
+    if (cell.i === '6' && cell.value) {
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
+          justifyContent: "flex-start",
+          gap: "4px",
+          padding: "8px",
+          background: "linear-gradient(135deg, #FF6B6B, #4ECDC4)",
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          overflow: "hidden",
+          minHeight: "0",
+          flex: "1 1 auto",
+          position: "relative"
+        }}>
+          <h3 style={{ 
+            margin: "0", 
+            color: "#FFFFFF", 
+            fontSize: "clamp(0.8rem, 2vw, 1.2rem)", 
+            textAlign: "center",
+            textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+            lineHeight: "1.2",
+            padding: "2px 0",
+            flex: "0 0 auto"
+          }}>
+            {cell.value.title}
+          </h3>
+          <div style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: "3px",
+            width: "100%",
+            fontSize: "clamp(0.7rem, 1.5vw, 0.9rem)",
+            color: "#FFFFFF",
+            flex: "1 1 auto",
+            overflow: "auto",
+            minHeight: "0"
+          }}>
+            <p style={{ 
+              margin: "0", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px",
+              backgroundColor: "rgba(255,255,255,0.2)",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              lineHeight: "1.2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flex: "0 0 auto"
+            }}>
+              <i className="fas fa-building" style={{ color: "#FFD700", flexShrink: "0" }}></i>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{cell.value.businessType}</span>
+            </p>
+            <p style={{ 
+              margin: "0", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px",
+              backgroundColor: "rgba(255,255,255,0.2)",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              lineHeight: "1.2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flex: "0 0 auto"
+            }}>
+              <i className="fas fa-map-marker-alt" style={{ color: "#FFD700", flexShrink: "0" }}></i>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{cell.value.address}</span>
+            </p>
+            <p style={{ 
+              margin: "0", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px",
+              backgroundColor: "rgba(255,255,255,0.2)",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              lineHeight: "1.2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flex: "0 0 auto"
+            }}>
+              <i className="fas fa-phone" style={{ color: "#FFD700", flexShrink: "0" }}></i>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{cell.value.phone}</span>
+            </p>
+            <p style={{ 
+              margin: "0", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px",
+              backgroundColor: "rgba(255,255,255,0.2)",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              lineHeight: "1.2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flex: "0 0 auto"
+            }}>
+              <i className="fas fa-envelope" style={{ color: "#FFD700", flexShrink: "0" }}></i>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{cell.value.email}</span>
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '7' && cell.value) {
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
+          justifyContent: "flex-start",
+          gap: "4px",
+          padding: "8px",
+          background: "linear-gradient(135deg, #4ECDC4, #2B7A78)",
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          overflow: "hidden",
+          minHeight: "0",
+          flex: "1 1 auto",
+          position: "relative"
+        }}>
+          <h3 style={{ 
+            margin: "0", 
+            color: "#FFFFFF", 
+            fontSize: "clamp(0.8rem, 2vw, 1.2rem)", 
+            textAlign: "center",
+            textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+            lineHeight: "1.2",
+            padding: "2px 0",
+            flex: "0 0 auto"
+          }}>
+            Productos y Servicios
+          </h3>
+          <div style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: "3px",
+            width: "100%",
+            fontSize: "clamp(0.7rem, 1.5vw, 0.9rem)",
+            color: "#FFFFFF",
+            flex: "1 1 auto",
+            overflow: "auto",
+            minHeight: "0"
+          }}>
+            {cell.value.map((service, index) => (
+              <div key={index} style={{
+                backgroundColor: "rgba(255,255,255,0.2)",
+                borderRadius: "4px",
+                padding: "4px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px"
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  lineHeight: "1.2",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
+                }}>
+                  <i className="fas fa-star" style={{ color: "#FFD700", flexShrink: "0" }}></i>
+                  <span style={{ 
+                    overflow: "hidden", 
+                    textOverflow: "ellipsis",
+                    fontWeight: "bold"
+                  }}>
+                    {service.name}
+                  </span>
+                </div>
+                {service.description && (
+                  <div style={{
+                    fontSize: "0.9em",
+                    paddingLeft: "20px",
+                    lineHeight: "1.2",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "-webkit-box",
+                    WebkitLineClamp: "2",
+                    WebkitBoxOrient: "vertical",
+                    whiteSpace: "normal"
+                  }}>
+                    {service.description}
+                  </div>
+                )}
+                {service.carouselImagesServicio && (
+                  <div style={{
+                    width: "100%",
+                    height: "60px",
+                    marginTop: "4px",
+                    borderRadius: "4px",
+                    overflow: "hidden"
+                  }}>
+                    <img 
+                      src={service.carouselImagesServicio} 
+                      alt={service.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover"
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (cell.i === '8' && cell.value) {
+      return <ReservationCell cell={cell} />;
+    }
+
+    if (cell.i === '9' && cell.value) {
+      const renderCalendar = () => {
+        switch (cell.value.tipo) {
+          case 'google':
+            return (
+              <iframe
+                src={cell.value.url || "https://calendar.google.com/calendar/embed?src=primary"}
+                style={{
+                  border: 0,
+                  width: "100%",
+                  height: "100%",
+                  frameborder: "0",
+                  scrolling: "no"
+                }}
+                title="Google Calendar"
+              />
+            );
+          case 'outlook':
+            return (
+              <iframe
+                src={cell.value.url || "https://outlook.live.com/calendar/0/deeplink"}
+                style={{
+                  border: 0,
+                  width: "100%",
+                  height: "100%",
+                  frameborder: "0",
+                  scrolling: "no"
+                }}
+                title="Outlook Calendar"
+              />
+            );
+          case 'ical':
+            return (
+              <div style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "8px",
+                backgroundColor: "#f8f9fa",
+                borderRadius: "8px"
+              }}>
+                <i className="fas fa-calendar-alt" style={{ fontSize: "2rem", color: "#007bff" }}></i>
+                <h3 style={{ margin: "0", color: "#333", fontSize: "1.1rem", textAlign: "center" }}>
+                  Calendario iCal
+                </h3>
+                <p style={{ margin: "0", color: "#666", fontSize: "0.9rem", textAlign: "center" }}>
+                  {cell.value.url ? (
+                    <a 
+                      href={cell.value.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: "#007bff",
+                        textDecoration: "none",
+                        padding: "8px 16px",
+                        backgroundColor: "#fff",
+                        borderRadius: "4px",
+                        border: "1px solid #007bff"
+                      }}
+                    >
+                      Ver Calendario
+                    </a>
+                  ) : (
+                    "No hay URL de calendario configurada"
+                  )}
+                </p>
+              </div>
+            );
+          default:
+            return (
+              <div style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "8px",
+                backgroundColor: "#f8f9fa",
+                borderRadius: "8px"
+              }}>
+                <i className="fas fa-calendar" style={{ fontSize: "2rem", color: "#6c757d" }}></i>
+                <h3 style={{ margin: "0", color: "#333", fontSize: "1.1rem", textAlign: "center" }}>
+                  Calendario de Eventos
+                </h3>
+                <p style={{ margin: "0", color: "#666", fontSize: "0.9rem", textAlign: "center" }}>
+                  Selecciona un tipo de calendario en el formulario
+                </p>
+              </div>
+            );
+        }
+      };
+
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
+          justifyContent: "flex-start",
+          gap: "4px",
+          padding: "8px",
+          background: "linear-gradient(135deg, #D5BAFF, #9D4EDD)",
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          overflow: "hidden",
+          minHeight: "0",
+          flex: "1 1 auto",
+          position: "relative"
+        }}>
+          {renderCalendar()}
+        </div>
+      );
+    }
+
+    if (cell.i === '10' && cell.value) {
+      return (
+        <div style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+        }}>
+          {cell.value.image && (
+            <img
+              src={cell.value.image}
+              alt="Foto 1"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
+          )}
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "16px",
+            background: "rgba(0, 0, 0, 0.4)",
+            color: cell.value.textColor || "#FFFFFF",
+            fontFamily: cell.value.fontFamily || "Arial"
+          }}>
+            {cell.value.title && (
+              <h3 style={{
+                margin: "0 0 8px 0",
+                fontSize: "clamp(1.2rem, 3vw, 2rem)",
+                textAlign: "center",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                fontWeight: "bold",
+                color: cell.value.textColor || "#FFFFFF",
+                fontFamily: cell.value.fontFamily || "Arial"
+              }}>
+                {cell.value.title}
+              </h3>
+            )}
+            {cell.value.description && (
+              <p style={{
+                margin: "0",
+                fontSize: "clamp(0.9rem, 2vw, 1.2rem)",
+                textAlign: "center",
+                lineHeight: "1.4",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.5)",
+                color: cell.value.textColor || "#FFFFFF",
+                fontFamily: cell.value.fontFamily || "Arial"
+              }}>
+                {cell.value.description}
+              </p>
+            )}
+          </div>
         </div>
       );
     }
